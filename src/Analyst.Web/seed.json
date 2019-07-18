@@ -1,0 +1,47 @@
+{
+	tags: [
+		{ name: "Spożywcze", color: "green" },
+		{ name: "Franek", color: "pink" },
+		{ name: "Samochód", color: "navy" },
+		{ name: "Lunch", color: "red" },
+		{ name: "Restauracje", color: "skyblue" },
+		{ name: "Oszczędności", color: "lightgreen" },
+		{ name: "Odzież i buty", color: "orange" },
+		{ name: "Lekarze", color: "aquamarine" },
+		{ name: "Koszty stałe", color: "darkgray" }
+	],
+	filters: [
+		{ 
+			tagName: "Spożywcze",
+			keywords: [ "biedronka", "zabka", "żabka", "lidl", "aldi", "SKLEP MUSZELKA", "FRESHMARKET" ]
+		},
+		{ 
+			tagName: "Samochód",
+			keywords: [ "lotos" ]
+		},
+		{ 
+			tagName: "Franek",
+			keywords: [ "kik textil", "pepco", "tedi" ]
+		},
+		{ 
+			tagName: "Lunch",
+			keywords: [ "pasibus", "8 stolikow", "wolt polska" ]
+		},
+		{ 
+			tagName: "Restauracje",
+			keywords: [ "tricolorepizza", "McDonalds", "pyszne.pl", "ZIELONA DOLINA" ]
+		},
+		{ 
+			tagName: "Oszczędności",
+			keywords: [ "conseq" ]
+		},
+		{ 
+			tagName: "Koszty stałe",
+			keywords: [ "38 1020 2313 0000 3402 0435 5863", "LOKAL 04-009-121", "DOŁADOWANIE TELEFONU", "kartaskup.pl" ]
+		},
+		{ 
+			tagName: "Odzież i buty",
+			keywords: [ "LPP RESERVED", "CCC" ]
+		}
+	]
+}

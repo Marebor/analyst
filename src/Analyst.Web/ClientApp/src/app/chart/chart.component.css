@@ -1,0 +1,39 @@
+.canvas-wrapper {
+  position: relative;
+  width: 46%;
+  margin: 0 auto;
+}
+
+.summary {
+  position: absolute;
+  top: 60px;
+  right: 60px;
+  width: 27%;
+  font-size: 14px;
+}
+
+.tag-summary {
+  position: relative;
+  width: 100%;
+}
+
+.amount {
+  width: 30%;
+  text-align: right;
+  display: inline-block;
+}
+
+.tag {
+  margin-left: 10px;
+  color: white;
+}
+
+.total {
+  font-weight: bold;
+}
+
+.others {
+  margin-left: 10px;
+  font-style: italic;
+}
+

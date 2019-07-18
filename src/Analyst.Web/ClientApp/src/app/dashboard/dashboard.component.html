@@ -1,0 +1,16 @@
+<div class="upper-bar">
+  <h1>Analyst</h1>
+  <div class="file-selection">
+    <app-file-upload (fileSelected)="onFileSelected($event)"></app-file-upload>
+  </div>
+</div>
+<div class="chart-wrapper">
+  <app-chart [transactions$]="transactions$" [tags$]="tags$"></app-chart>
+</div>
+<div class="list-wrapper" [class.expanded]="expandList">
+  <app-transactions-list [transactions$]="transactions$" [tags$]="tags$"
+  (tagAdditionRequested)="addTagToTransaction($event.tagName, $event.transactionId)"
+  (tagRemovalRequested)="removeTagFromTransaction($event.tagName, $event.transactionId)"
+  (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"
+  (modeChanged)="onListModeChanged($event)"></app-transactions-list>
+</div>
