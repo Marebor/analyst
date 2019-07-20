@@ -36,7 +36,6 @@ namespace Analyst.Web
             services.AddSingleton<IStore<Filter>, InMemoryStore>();
             services.AddScoped<TransactionService>();
             services.AddScoped<TagService>();
-            services.AddScoped<AutoTagApplier>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

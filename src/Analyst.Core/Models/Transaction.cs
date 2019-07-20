@@ -1,5 +1,6 @@
 ﻿using Analyst.Core.Models.Abstract;
 using System;
+using System.Collections.Generic;
 
 namespace Analyst.Core.Models
 {
@@ -12,5 +13,6 @@ namespace Analyst.Core.Models
         public string Description { get; set; }
         public decimal Amount { get; set; }
         public decimal EndingBalance { get; set; }
+        public ICollection<string> AssignedTagNames { get; set; }
     }
 }

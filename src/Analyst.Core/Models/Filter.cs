@@ -6,7 +6,7 @@ namespace Analyst.Core.Models
     public class Filter : IEntity
     {
         public int Id { get; set; }
-        public string TagName { get; set; }
-        public IEnumerable<string> Keywords { get; set; }
+        public IEnumerable<string> TagNamesIfTrue { get; set; }
+        public string Expression { get; set; }
     }
 }

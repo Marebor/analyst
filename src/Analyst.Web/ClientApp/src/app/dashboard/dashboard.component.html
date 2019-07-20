@@ -5,10 +5,10 @@
   </div>
 </div>
 <div class="chart-wrapper">
-  <app-chart [transactions$]="transactions$" [tags$]="tags$"></app-chart>
+  <app-chart [transactions$]="transactions$" [tags$]="tags$" [filters$]="filters$"></app-chart>
 </div>
 <div class="list-wrapper" [class.expanded]="expandList">
-  <app-transactions-list [transactions$]="transactions$" [tags$]="tags$"
+  <app-transactions-list [transactions$]="transactions$" [tags$]="tags$" [filters$]="filters$"
   (tagAdditionRequested)="addTagToTransaction($event.tagName, $event.transactionId)"
   (tagRemovalRequested)="removeTagFromTransaction($event.tagName, $event.transactionId)"
   (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"

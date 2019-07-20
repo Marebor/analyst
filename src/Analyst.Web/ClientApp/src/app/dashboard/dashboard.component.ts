@@ -1,9 +1,11 @@
+import { FilterService } from './../services/filter.service';
 import { TagService } from './../services/tag.service';
 import { Transaction } from './../models/transaction.model';
 import { Component, OnInit } from '@angular/core';
 import { TransactionService } from '../services/transaction.service';
 import { BehaviorSubject } from 'rxjs';
 import { Tag } from '../models/tag.model';
+import { Filter } from '../models/filter.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,10 +16,14 @@ export class DashboardComponent implements OnInit {
 
   transactions$: BehaviorSubject<Transaction[]> = new BehaviorSubject<Transaction[]>([]);
   tags$: BehaviorSubject<Tag[]> = new BehaviorSubject<Tag[]>([]);
+  filters$: BehaviorSubject<Filter[]> = new BehaviorSubject<Filter[]>([]);
   expandList: boolean = false;
 
-  constructor(private transactionService: TransactionService, private tagService: TagService) {
-  }
+  constructor(
+    private transactionService: TransactionService, 
+    private tagService: TagService,
+    private filterService: FilterService
+    ) { }
 
   ngOnInit() {
     this.refresh()
@@ -51,5 +57,9 @@ export class DashboardComponent implements OnInit {
     this.tagService.getAvailableTags().subscribe(x => {
       this.tags$.next(x);
     });
+
+    this.filterService.getFilters().subscribe(x => {
+      this.filters$.next(x);
+    })
   }
 }

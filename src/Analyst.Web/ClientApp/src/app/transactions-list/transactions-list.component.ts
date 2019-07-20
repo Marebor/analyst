@@ -1,7 +1,9 @@
+import { FilterService } from './../services/filter.service';
 import { Transaction } from '../models/transaction.model';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
+import { Filter } from '../models/filter.model';
 
 @Component({
   selector: 'app-transactions-list',
@@ -11,24 +13,36 @@ import { Tag } from '../models/tag.model';
 export class TransactionsListComponent implements OnInit {
   @Input() transactions$: Observable<Transaction[]>;
   @Input() tags$: Observable<Tag[]>;
+  @Input() filters$: Observable<Filter[]>;
   @Output() tagAdditionRequested: EventEmitter<{ tagName: string, transactionId: number }> = new EventEmitter<{ tagName: string, transactionId: number }>();
   @Output() tagRemovalRequested: EventEmitter<{ tagName: string, transactionId: number }> = new EventEmitter<{ tagName: string, transactionId: number }>();
   @Output() tagColorChangeRequested: EventEmitter<{ tagName: string, color: string }> = new EventEmitter<{ tagName: string, color: string }>();
   @Output() modeChanged: EventEmitter<'edit' | 'browse'> = new EventEmitter<'edit' | 'browse'>();
+  filterAssignments: { transaction: Transaction, tags: Tag[] }[] = [];
   selectedTransaction: Transaction;
   transactions: Transaction[];
   tags: Tag[];
+  filters: Filter[];
   tagTooltipActive: { tagName: string, transactionId: number };
   changingTagColor: boolean;
   editModeActive: boolean = false;
 
+  constructor(private filterService: FilterService) { }
+
   ngOnInit() {
     this.transactions$.subscribe(x => {
       this.transactions = x;
+      this.refresh();
     });
 
     this.tags$.subscribe(x => {
       this.tags = x;
+      this.refresh();
+    });
+
+    this.filters$.subscribe(x => {
+      this.filters = x;
+      this.refresh();
     });
   }
 
@@ -88,7 +102,23 @@ export class TransactionsListComponent implements OnInit {
     this.tagTooltipActive = null;
   }
 
-  getTagsForTransaction(transactionId: number) {
-    return this.tags ? this.tags.filter(tag => tag.transactionsIds.indexOf(transactionId) > -1) : [];
+  getTagsForTransaction(transaction: Transaction): Tag[] {
+    const filterAssignment = this.filterAssignments.find(x => x.transaction.id === transaction.id);
+    return (filterAssignment ? filterAssignment.tags : [])
+      .concat(transaction.assignedTagNames
+        .map(tagName => this.tags.find(tag => tag.name === tagName))
+        .filter(tag => !!tag)
+      );
+  }
+
+  private refresh() {
+    if (this.transactions && this.tags && this.filters) {
+      this.filterAssignments = this.transactions.map(transaction => {
+        return { transaction, tags: this.filterService
+          .getTagNames(transaction, this.filters)
+          .map(tagName => this.tags.find(tag => tag.name === tagName))
+          .filter(tag => !!tag) };
+      });
+    }
   }
 }

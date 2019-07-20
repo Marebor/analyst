@@ -6,4 +6,5 @@ export interface Transaction {
   description: string,
   amount: number,
   endingBalance: number,
+  assignedTagNames: string[],
 }

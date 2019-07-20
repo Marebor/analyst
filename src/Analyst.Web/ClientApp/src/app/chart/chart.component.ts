@@ -1,8 +1,10 @@
+import { FilterService } from './../services/filter.service';
 import { Component, Input, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { Transaction } from '../models/transaction.model';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
 import { Subscription } from 'rxjs/Subscription';
+import { Filter } from '../models/filter.model';
 
 @Component({
   selector: 'app-chart',
@@ -12,12 +14,15 @@ import { Subscription } from 'rxjs/Subscription';
 export class ChartComponent implements OnInit, OnDestroy {
   @Input() transactions$: Observable<Transaction[]>;
   @Input() tags$: Observable<Tag[]>;
+  @Input() filters$: Observable<Filter[]>;
   @Output() tagSelected: EventEmitter<Tag> = new EventEmitter<Tag>();
   transactions: Transaction[];
   tags: Tag[];
+  filters: Filter[];
   total: number;
   private transactionsSubscription: Subscription;
   private tagsSubscription: Subscription;
+  private filtersSubscription: Subscription;
 
   pieChartLabels: string[];
   pieChartData: number[];
@@ -35,6 +40,9 @@ export class ChartComponent implements OnInit, OnDestroy {
     return !!this.pieChartLabels && !!this.pieChartData;
   }
 
+  constructor(private filterService: FilterService) {
+  }
+
   ngOnInit() {
     this.transactionsSubscription = this.transactions$.subscribe(transactions => {
       this.transactions = transactions.filter(trans => trans.amount < 0);
@@ -45,11 +53,17 @@ export class ChartComponent implements OnInit, OnDestroy {
       this.tags = tags;
       this.refresh();
     });
+    
+    this.filtersSubscription = this.filters$.subscribe(filters => {
+      this.filters = filters;
+      this.refresh();
+    });
   }
 
   ngOnDestroy() {
     this.transactionsSubscription.unsubscribe();
     this.tagsSubscription.unsubscribe();
+    this.filtersSubscription.unsubscribe();
   }
 
   private refresh() {
@@ -62,14 +76,8 @@ export class ChartComponent implements OnInit, OnDestroy {
     
     let pieChartLabels = this.tags.map(tag => tag.name);
     let pieChartColors = [{ backgroundColor: this.tags.map(tag => tag.color) }];
-    let pieChartData = this.tags.map(tag => tag.transactionsIds.reduce((prev, id) => {
-      const transaction = this.transactions.find(trans => trans.id == id);
-      if (transaction) {
-        return prev - transaction.amount;
-      } else {
-        return prev;
-      };
-    }, 0));
+    let pieChartData = pieChartLabels.map(tagName => this.getTotalAmount(
+      this.filterService.filterTransactions(tagName, this.transactions, this.filters)));
 
     let data: { tagName: string, tagColor: string, amount: number }[] = [];
     pieChartLabels.forEach((label, index) => {
@@ -79,12 +87,9 @@ export class ChartComponent implements OnInit, OnDestroy {
     data.sort((a, b) => a.amount > b.amount ? -1 : 1);
     this.tags = data.map(x => this.tags.find(t => t.name === x.tagName));
     
-    const otherTransactions = this.transactions.filter(
-      trans => this.tags.map(tag => tag.transactionsIds).reduce((prev, current) => {
-        return prev.concat(current);
-      }, [])
-      .findIndex(id => trans.id === id) === -1);
-    const othersAmount = otherTransactions.reduce((prev, curr) => prev - curr.amount, 0);
+    const otherTransactions = this.transactions.filter(x => 
+      x.assignedTagNames.length === 0 && this.filterService.getTagNames(x, this.filters).length === 0);
+    const othersAmount = this.getTotalAmount(otherTransactions);
 
     data.push({ tagName: 'Inne', tagColor: 'lightgray', amount: othersAmount });
     data = data.map(x => { return { ...x, amount: Math.round(x.amount * 100) / 100 } });
@@ -95,5 +100,9 @@ export class ChartComponent implements OnInit, OnDestroy {
       this.pieChartData = data.map(x => x.amount);
       this.pieChartColors = [{ backgroundColor: data.map(x => x.tagColor) }];
     });
+  }
+
+  private getTotalAmount(transactions: Transaction[]): number {
+    return Math.round(transactions.reduce((sum, trans) => sum - trans.amount, 0) * 100) / 100;
   }
 }

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Analyst.Core.Services
@@ -13,16 +12,14 @@ namespace Analyst.Core.Services
     {
         IStore<Transaction> transactionStore;
         IStore<Tag> tagStore;
-        AutoTagApplier autoTagApplier;
 
-        public TransactionService(IStore<Transaction> transactionStore, IStore<Tag> tagStore, AutoTagApplier autoTagApplier)
+        public TransactionService(IStore<Transaction> transactionStore, IStore<Tag> tagStore)
         {
             this.transactionStore = transactionStore;
             this.tagStore = tagStore;
-            this.autoTagApplier = autoTagApplier;
         }
 
-        public async Task SaveTransactionsFromXml(Stream xml)
+        public async Task<IEnumerable<Transaction>> SaveTransactionsFromXml(Stream xml)
         {
             var transactions = XmlTransactionParser.GetTransactions(xml).ToList();
             var alreadyExistingtransactions = await transactionStore.Query(q => q);
@@ -31,14 +28,16 @@ namespace Analyst.Core.Services
                 .Where(x => !alreadyExistingtransactions.Any(t => t.OrderDate == x.OrderDate && t.Amount == x.Amount && t.EndingBalance == x.EndingBalance))
                 .ToList();
 
+            transactionsToSave.ForEach(t => t.AssignedTagNames = new List<string>());
+
             await transactionStore.Save(transactionsToSave);
 
-            await AddTags(transactionsToSave);
+            return transactionsToSave;
         }
 
         public async Task AddTagToTransaction(int transactionId, string tagName)
         {
-            await ValidateTransactionId(transactionId);
+            var transaction = await GetTransaction(transactionId);
 
             var tag = await GetTagByName(tagName);
 
@@ -48,81 +47,40 @@ namespace Analyst.Core.Services
                 {
                     Name = tagName,
                     Color = "gray",
-                    TransactionsIds = new List<int>(),
                 };
+
+                await tagStore.Save(tag);
             }
 
-            tag.TransactionsIds.Add(transactionId);
+            transaction.AssignedTagNames.Add(tag.Name);
 
-            await tagStore.Save(tag);
+            await transactionStore.Save(transaction);
         }
 
         public async Task RemoveTagFromTransaction(string tagName, int transactionId)
         {
-            await ValidateTransactionId(transactionId);
+            var transaction = await GetTransaction(transactionId);
 
-            var tag = await GetTagByName(tagName, x => x.TransactionsIds.Contains(transactionId));
+            transaction.AssignedTagNames.Remove(tagName);
 
-            if (tag == null)
-            {
-                throw new Exception($"Tag {tagName} is not related to transaction with ID = {transactionId}.");
-            }
-
-            tag.TransactionsIds.Remove(transactionId);
-
-            if (!tag.TransactionsIds.Any())
-            {
-                await tagStore.Delete(tag);
-            }
-            else
-            {
-                await tagStore.Save(tag);
-            }
+            await transactionStore.Save(transaction);
         }
 
-        private async Task ValidateTransactionId(int transactionId)
+        private async Task<Transaction> GetTransaction(int transactionId)
         {
-            var transactionExists = (await transactionStore.Query(q => q.Where(x => x.Id == transactionId))).Any();
+            var transaction = (await transactionStore.Query(q => q.Where(x => x.Id == transactionId))).FirstOrDefault();
 
-            if (!transactionExists)
+            if (transaction == null)
             {
                 throw new Exception($"transaction with ID = {transactionId} does not exist.");
             }
+
+            return transaction;
         }
 
-        private async Task<Tag> GetTagByName(string tagName, Expression<Func<Tag, bool>> additionalFilter = null)
+        private async Task<Tag> GetTagByName(string tagName)
             => (await tagStore.Query(q => q
-                .Where(x => x.Name == tagName)
-                .Where(additionalFilter == null ? x => true : additionalFilter)))
+                .Where(x => x.Name == tagName)))
                 .FirstOrDefault();
-
-        private async Task AddTags(IEnumerable<Transaction> transactions)
-        {
-            foreach (var transaction in transactions)
-            {
-                var tagNames = await autoTagApplier.GetTagNames(transaction);
-
-                foreach (var tagName in tagNames)
-                {
-                    var savedTag = await GetTagByName(tagName);
-
-                    if (savedTag == null)
-                    {
-                        savedTag = new Tag
-                        {
-                            Name = tagName,
-                            TransactionsIds = new List<int>(),
-                        };
-                    }
-
-                    if (!savedTag.TransactionsIds.Contains(transaction.Id))
-                    {
-                        savedTag.TransactionsIds.Add(transaction.Id);
-                    }
-
-                    await tagStore.Save(savedTag);
-                }
-            }
-        }
     }
 }

@@ -1,3 +1,4 @@
+import { FilterService } from './services/filter.service';
 import { FileUploadComponent } from './file-upload/file-upload.component';
 import { ChartComponent } from './chart/chart.component';
 import { TransactionService } from './services/transaction.service';
@@ -11,6 +12,7 @@ import { ChartsModule } from 'ng2-charts';
 import { AppComponent } from './app.component';
 import { TransactionsListComponent } from './transactions-list/transactions-list.component';
 import { TagService } from './services/tag.service';
+import { FilterManagerComponent } from './filter-manager/filter-manager.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +21,7 @@ import { TagService } from './services/tag.service';
     TransactionsListComponent,
     ChartComponent,
     FileUploadComponent,
+    FilterManagerComponent,
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -33,6 +36,7 @@ import { TagService } from './services/tag.service';
     { provide: 'BASE_URL', useValue: `${location.origin}/` },
     TransactionService,
     TagService,
+    FilterService,
   ],
   bootstrap: [AppComponent]
 })
