@@ -28,7 +28,11 @@ namespace Analyst.Core.Services
                 .Where(x => !alreadyExistingtransactions.Any(t => t.OrderDate == x.OrderDate && t.Amount == x.Amount && t.EndingBalance == x.EndingBalance))
                 .ToList();
 
-            transactionsToSave.ForEach(t => t.AssignedTagNames = new List<string>());
+            transactionsToSave.ForEach(t =>
+            {
+                t.AssignedTagNames = new List<string>();
+                t.ForbiddenTagNames = new List<string>();
+            });
 
             await transactionStore.Save(transactionsToSave);
 
@@ -38,21 +42,32 @@ namespace Analyst.Core.Services
         public async Task AddTagToTransaction(int transactionId, string tagName)
         {
             var transaction = await GetTransaction(transactionId);
-
-            var tag = await GetTagByName(tagName);
-
-            if (tag == null)
+            
+            if (transaction.AssignedTagNames.Contains(tagName))
             {
-                tag = new Tag
-                {
-                    Name = tagName,
-                    Color = "gray",
-                };
-
-                await tagStore.Save(tag);
+                return;
             }
+            else if (transaction.ForbiddenTagNames.Contains(tagName))
+            {
+                transaction.ForbiddenTagNames.Remove(tagName);
+            }
+            else
+            {
+                var tag = await GetTagByName(tagName);
 
-            transaction.AssignedTagNames.Add(tag.Name);
+                if (tag == null)
+                {
+                    tag = new Tag
+                    {
+                        Name = tagName,
+                        Color = "gray",
+                    };
+
+                    await tagStore.Save(tag);
+                }
+
+                transaction.AssignedTagNames.Add(tagName);
+            }            
 
             await transactionStore.Save(transaction);
         }
@@ -61,7 +76,23 @@ namespace Analyst.Core.Services
         {
             var transaction = await GetTransaction(transactionId);
 
-            transaction.AssignedTagNames.Remove(tagName);
+            if (transaction.AssignedTagNames.Contains(tagName))
+            {
+                transaction.AssignedTagNames.Remove(tagName);
+            }
+            else if (!transaction.ForbiddenTagNames.Contains(tagName))
+            {
+                transaction.ForbiddenTagNames.Add(tagName);
+            }
+
+            await transactionStore.Save(transaction);
+        }
+
+        public async Task SetIgnoredValue(int transactionId, bool value)
+        {
+            var transaction = await GetTransaction(transactionId);
+
+            transaction.Ignored = value;
 
             await transactionStore.Save(transaction);
         }

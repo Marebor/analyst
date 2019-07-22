@@ -1,5 +1,5 @@
+import { Transaction } from './../models/transaction.model';
 import { FilterService } from './../services/filter.service';
-import { Transaction } from '../models/transaction.model';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
@@ -57,13 +57,9 @@ export class TransactionsListComponent implements OnInit {
 
   transactionClicked(transaction: Transaction) {
     this.selectedTransaction = this.selectedTransaction === transaction ? null : transaction;
-
-    if (!this.editModeActive) {
-      this.toggleMode();
-    }
   }
 
-  addTagToTransaction(tag: Tag) {
+  addTagToSelectedTransaction(tag: Tag) {
     if (this.selectedTransaction) {
       this.tagAdditionRequested.emit({ tagName: tag.name, transactionId: this.selectedTransaction.id });
     }
@@ -78,6 +74,10 @@ export class TransactionsListComponent implements OnInit {
     inputElement.value = null;
   }
 
+  addTagToTransaction(tag: Tag, transaction: Transaction) {
+    this.tagAdditionRequested.emit({ tagName: tag.name, transactionId: transaction.id });
+  }
+
   tagHovered(tagName: string, transactionId: number) {
     this.tagTooltipActive = { tagName, transactionId };
   }
@@ -85,6 +85,10 @@ export class TransactionsListComponent implements OnInit {
   tagBlurred() {
     this.tagTooltipActive = null;
     this.changingTagColor = false;
+  }
+
+  isTagForbidden(tag: Tag, transaction: Transaction) {
+    return transaction.forbiddenTagNames.find(name => name === tag.name);
   }
 
   isTagTooltipActive(tagName: string, transactionId: number) {

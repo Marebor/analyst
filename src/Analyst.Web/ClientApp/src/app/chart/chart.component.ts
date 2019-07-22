@@ -37,7 +37,7 @@ export class ChartComponent implements OnInit, OnDestroy {
   }
 
   get displayChart(): boolean {
-    return !!this.pieChartLabels && !!this.pieChartData;
+    return !!this.pieChartLabels && !!this.pieChartData && this.dataAvailable;
   }
 
   constructor(private filterService: FilterService) {
@@ -64,6 +64,14 @@ export class ChartComponent implements OnInit, OnDestroy {
     this.transactionsSubscription.unsubscribe();
     this.tagsSubscription.unsubscribe();
     this.filtersSubscription.unsubscribe();
+  }
+
+  chartHovered($event: any) {
+    
+  }
+
+  chartClicked($event: any) {
+
   }
 
   private refresh() {

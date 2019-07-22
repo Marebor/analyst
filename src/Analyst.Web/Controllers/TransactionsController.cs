@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Analyst.Web.Controllers
 {
+    [ApiController]
     [Route("api/transactions")]
     public class TransactionsController : Controller
     {
@@ -41,7 +42,7 @@ namespace Analyst.Web.Controllers
                 if (amountTo.HasValue)
                     q = q.Where(x => x.Amount <= amountTo.Value);
 
-                return q;
+                return q.OrderByDescending(x => x.OrderDate);
             }));
         }
 
@@ -63,9 +64,17 @@ namespace Analyst.Web.Controllers
         }
 
         [HttpDelete("{transactionId}/tags/{tagName}")]
-        public async Task<IActionResult>RemoveTag(int transactionId, string tagName)
+        public async Task<IActionResult> RemoveTag(int transactionId, string tagName)
         {
             await transactionService.RemoveTagFromTransaction(tagName, transactionId);
+
+            return Ok();
+        }
+
+        [HttpPost("{transactionId}/ignored")]
+        public async Task<IActionResult> SetIgnored(int transactionId, bool value)
+        {
+            await transactionService.SetIgnoredValue(transactionId, value);
 
             return Ok();
         }

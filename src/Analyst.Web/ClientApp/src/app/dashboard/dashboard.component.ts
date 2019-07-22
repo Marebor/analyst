@@ -17,6 +17,8 @@ export class DashboardComponent implements OnInit {
   transactions$: BehaviorSubject<Transaction[]> = new BehaviorSubject<Transaction[]>([]);
   tags$: BehaviorSubject<Tag[]> = new BehaviorSubject<Tag[]>([]);
   filters$: BehaviorSubject<Filter[]> = new BehaviorSubject<Filter[]>([]);
+  showCalendar: boolean;
+  dateRange: {from: Date, to: Date };
   expandList: boolean = false;
 
   constructor(
@@ -26,7 +28,16 @@ export class DashboardComponent implements OnInit {
     ) { }
 
   ngOnInit() {
-    this.refresh()
+    const today = new Date();
+    const days = 14;
+    this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
+    this.refresh();
+  }
+
+  onDateRangeChanged(dateRange: { from: Date, to: Date }) {
+    this.dateRange = dateRange;
+    this.refresh();
+    this.showCalendar = false;
   }
 
   onFileSelected(file: any) {
@@ -50,7 +61,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private refresh() {
-    this.transactionService.getTransactions().subscribe(x => {
+    this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to).subscribe(x => {
       this.transactions$.next(x);
     });
     

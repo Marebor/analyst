@@ -2,16 +2,32 @@ import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { Transaction } from '../models/transaction.model';
-import { Tag } from '../models/tag.model';
+import { DatePipe } from '@angular/common';
 
 @Injectable()
 export class TransactionService {
 
-  constructor(@Inject('BASE_URL') private originUrl: string, private httpClient: HttpClient) {
+  constructor(
+    @Inject('BASE_URL') private originUrl: string, 
+    private httpClient: HttpClient,
+    private datePipe: DatePipe
+    ) {
   }
 
-  getTransactions(): Observable<Transaction[]> {
-    return this.httpClient.get<Transaction[]>(`${this.originUrl}api/transactions`);
+  getTransactions(dateFrom?: Date, dateTo?: Date): Observable<Transaction[]> {
+    let queryString = '';
+    if (dateFrom || dateTo) {
+      queryString += '?';
+    }
+    if (dateFrom) {
+      queryString += `dateFrom=${this.datePipe.transform(dateFrom, 'yyyy-MM-dd')}`;
+    }
+    if (dateTo) {
+      const expression = `dateTo=${this.datePipe.transform(dateTo, 'yyyy-MM-dd')}`;
+      queryString += queryString === '?' ? expression : '&' + expression ;
+    }
+
+    return this.httpClient.get<Transaction[]>(`${this.originUrl}api/transactions${queryString}`);
   }
 
   addTransactionsFromXml(file: any): Observable<void> {

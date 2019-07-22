@@ -3,7 +3,7 @@
     <div class="expand-button" (click)="toggleMode()">
       <div class="arrow" [class.down]="editModeActive"></div>
     </div>
-    <span *ngFor="let tag of tags" class="tag" (click)="addTagToTransaction(tag)">
+    <span *ngFor="let tag of tags" class="tag" (click)="addTagToSelectedTransaction(tag)">
       <span class="badge badge-pill" [style.background-color]="tag.color">{{ tag.name }}</span>
     </span>
   </div>
@@ -19,7 +19,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let transaction of transactions" [class.selected]="selectedTransaction === transaction" (click)="transactionClicked(transaction)">
+        <tr *ngFor="let transaction of transactions" [class.ignored]="transaction.ignored" [class.selected]="selectedTransaction === transaction" 
+        (click)="transactionClicked(transaction)">
           <td>{{ transaction.orderDate | date:'dd.MM.yyyy' }}</td>
           <td>{{ transaction.type }}</td>
           <td class="text-wrap">{{ transaction.description }}</td>
@@ -30,15 +31,21 @@
             </div>
             <div class="tags">
               <span *ngFor="let tag of getTagsForTransaction(transaction)" class="tag" (mouseleave)="tagBlurred()">
-                <span class="badge badge-pill" 
+                <span class="badge badge-pill" [class.forbidden]="isTagForbidden(tag, transaction)"
                   [style.background-color]="tag.color" (mouseenter)="tagHovered(tag.name, transaction.id)">
                   {{ tag.name }}
-                  <div *ngIf="isTagTooltipActive(tag.name, transaction.id)" class="tag-tooltip">
-                    <input *ngIf="changingTagColor" type="text" class="form-control form-control-sm tag-color-input" autofocus (keyup.enter)="changeTagColor(tagColorInput, tag.name)" #tagColorInput />
-                    <button *ngIf="!changingTagColor" class="btn btn-light" (click)="changeColorClicked()">Change color</button>
-                    <button *ngIf="!changingTagColor" class="btn btn-danger" (click)="removeTagFromTransaction(tag.name, transaction.id)">Remove</button>
-                  </div>
                 </span>
+                <div *ngIf="isTagTooltipActive(tag.name, transaction.id)" class="tag-tooltip">
+                  <div *ngIf="isTagForbidden(tag, transaction); else notForbidden">
+                    Tag <i>{{ tag.name }}</i> spełnia warunki filtru, ale został usunięty 
+                    <button type="button" class="btn btn-link allow-tag-button" (click)="addTagToTransaction(tag, transaction)">Przywróć</button>
+                  </div>
+                  <ng-template #notForbidden>
+                    <input *ngIf="changingTagColor" type="text" class="form-control form-control-sm tag-color-input" autofocus (keyup.enter)="changeTagColor(tagColorInput, tag.name)" #tagColorInput />
+                    <button *ngIf="!changingTagColor" class="btn btn-link change-color-button" (click)="changeColorClicked()">Change color</button>
+                    <button *ngIf="!changingTagColor" class="btn btn-link remove-tag-button" (click)="removeTagFromTransaction(tag.name, transaction.id)">Remove</button>
+                  </ng-template>
+                </div>
               </span>
             </div>
           </td>

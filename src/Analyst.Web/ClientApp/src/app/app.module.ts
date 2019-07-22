@@ -13,6 +13,9 @@ import { AppComponent } from './app.component';
 import { TransactionsListComponent } from './transactions-list/transactions-list.component';
 import { TagService } from './services/tag.service';
 import { FilterManagerComponent } from './filter-manager/filter-manager.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { DateRangeComponent } from './date-range/date-range.component';
+import { DatePipe } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -22,12 +25,14 @@ import { FilterManagerComponent } from './filter-manager/filter-manager.componen
     ChartComponent,
     FileUploadComponent,
     FilterManagerComponent,
+    DateRangeComponent,
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
     HttpClientModule,
     FormsModule,
     ChartsModule,
+    NgbModule.forRoot(),
     RouterModule.forRoot([
       { path: '', component: DashboardComponent, pathMatch: 'full' },
     ])
@@ -37,6 +42,7 @@ import { FilterManagerComponent } from './filter-manager/filter-manager.componen
     TransactionService,
     TagService,
     FilterService,
+    DatePipe
   ],
   bootstrap: [AppComponent]
 })

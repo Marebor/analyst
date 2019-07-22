@@ -1,51 +1,82 @@
 {
-	tags: [
-		{ name: "Spożywcze", color: "green" },
-		{ name: "Franek", color: "pink" },
-		{ name: "Samochód", color: "navy" },
-		{ name: "Lunch", color: "red" },
-		{ name: "Restauracje", color: "skyblue" },
-		{ name: "Oszczędności", color: "lightgreen" },
-		{ name: "Odzież i buty", color: "orange" },
-		{ name: "Lekarze", color: "aquamarine" },
-		{ name: "Koszty stałe", color: "darkgray" }
-	],
-  filters: [
+  "tags": [
     {
-      "tagNamesIfTrue": [ "Spożywcze" ],
-      "Expression": "['biedronka', 'zabka', 'żabka', 'lidl', 'aldi', 'SKLEP MUSZELKA', 'FRESHMARKET'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "name": "Zakupy codzienne",
+      "color": "#4CAF50"
+    },
+    {
+      "name": "Franek",
+      "color": "#E91E63"
+    },
+    {
+      "name": "Samochód",
+      "color": "#3F51B5"
+    },
+    {
+      "name": "Lunch",
+      "color": "#FF5722"
+    },
+    {
+      "name": "Restauracje",
+      "color": "#FF9800"
+    },
+    {
+      "name": "Oszczędności",
+      "color": "#795548"
+    },
+    {
+      "name": "Odzież i buty",
+      "color": "#9C27B0"
+    },
+    {
+      "name": "Zdrowie",
+      "color": "#00BCD4"
+    },
+    {
+      "name": "Koszty stałe",
+      "color": "#9E9E9E"
+    },
+    {
+      "name": "Wygląd i kosmetyki",
+      "color": "#F44336"
     }
-    //{
-    //	tagName: "Spożywcze",
-    //	keywords: [ "biedronka", "zabka", "żabka", "lidl", "aldi", "SKLEP MUSZELKA", "FRESHMARKET" ]
-    //},
-    //{
-    //	tagName: "Samochód",
-    //	keywords: [ "lotos" ]
-    //},
-    //{
-    //	tagName: "Franek",
-    //	keywords: [ "kik textil", "pepco", "tedi" ]
-    //},
-    //{
-    //	tagName: "Lunch",
-    //	keywords: [ "pasibus", "8 stolikow", "wolt polska" ]
-    //},
-    //{
-    //	tagName: "Restauracje",
-    //	keywords: [ "tricolorepizza", "McDonalds", "pyszne.pl", "ZIELONA DOLINA" ]
-    //},
-    //{
-    //	tagName: "Oszczędności",
-    //	keywords: [ "conseq" ]
-    //},
-    //{
-    //	tagName: "Koszty stałe",
-    //	keywords: [ "38 1020 2313 0000 3402 0435 5863", "LOKAL 04-009-121", "DOŁADOWANIE TELEFONU", "kartaskup.pl" ]
-    //},
-    //{
-    //	tagName: "Odzież i buty",
-    //	keywords: [ "LPP RESERVED", "CCC" ]
-    //}
+  ],
+  "filters": [
+    {
+      "tagNamesIfTrue": [ "Zakupy codzienne" ],
+      "Expression": "['biedronka', 'zabka', 'żabka', 'lidl', 'aldi', 'SKLEP MUSZELKA', 'FRESHMARKET'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    },
+    {
+      "tagNamesIfTrue": [ "Samochód" ],
+      "Expression": "['lotos', 'orlen', 'shell'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    },
+    {
+      "tagNamesIfTrue": [ "Lunch" ],
+      "Expression": "['pasibus', '8 stolikow', 'wolt polska'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    },
+    {
+      "tagNamesIfTrue": [ "Restauracje" ],
+      "Expression": "['tricolore', 'McDonalds', 'pyszne.pl'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    },
+    {
+      "tagNamesIfTrue": [ "Oszczędności" ],
+      "Expression": "['conseq'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    },
+    {
+      "tagNamesIfTrue": [ "Koszty stałe" ],
+      "Expression": "['38 1020 2313 0000 3402 0435 5863', 'LOKAL 04-009-121', 'DOŁADOWANIE TELEFONU'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    },
+    {
+      "tagNamesIfTrue": [ "Odzież i buty" ],
+      "Expression": "['LPP RESERVED', 'CCC'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    },
+    {
+      "tagNamesIfTrue": [ "Zdrowie" ],
+      "Expression": "['apteka'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    },
+    {
+      "tagNamesIfTrue": [ "Wygląd i kosmetyki" ],
+      "Expression": "['barber', 'rossman'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+    }
   ]
 }

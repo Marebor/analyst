@@ -24,9 +24,39 @@
   transform: translateY(-50%);
 }
 
+.datepicker-wrapper {
+  position: absolute;
+  z-index: 100;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.datepicker-wrapper h1 {
+  font-size: 18px;
+  padding: 10px;
+  font-weight: 450;
+}
+
+.datepicker-wrapper h1 i {
+  padding: 4px;
+  font-size: 14px;
+  font-weight: 450;
+  color: blue;
+  cursor: pointer;
+}
+
+.datepicker-wrapper h1 i:hover {
+  text-decoration: underline;
+}
+
+.datepicker {
+  background-color: white;
+}
+
 .chart-wrapper {
   height: calc(60vh - 44px);
-  padding: 20px;
+  padding: 40px;
 }
 
 .list-wrapper {
