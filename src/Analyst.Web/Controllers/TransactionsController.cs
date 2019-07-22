@@ -72,7 +72,7 @@ namespace Analyst.Web.Controllers
         }
 
         [HttpPost("{transactionId}/ignored")]
-        public async Task<IActionResult> SetIgnored(int transactionId, bool value)
+        public async Task<IActionResult> SetIgnored(int transactionId, [FromBody]bool value)
         {
             await transactionService.SetIgnoredValue(transactionId, value);
 

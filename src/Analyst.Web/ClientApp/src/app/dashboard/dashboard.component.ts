@@ -48,6 +48,10 @@ export class DashboardComponent implements OnInit {
     this.expandList = mode === 'edit';
   }
 
+  changeTransactionIgnoreValue(transaction: Transaction) {
+    this.transactionService.setIgnoredValue(transaction.id, !transaction.ignored).subscribe(() => this.refresh());
+  }
+
   addTagToTransaction(tagName: string, transactionId: number) {
     this.transactionService.addTagTotransaction(tagName, transactionId).subscribe(() => this.refresh());
   }

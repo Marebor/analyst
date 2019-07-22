@@ -18,6 +18,7 @@
 </div>
 <div class="list-wrapper" [class.expanded]="expandList">
   <app-transactions-list [transactions$]="transactions$" [tags$]="tags$" [filters$]="filters$"
+  (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"
   (tagAdditionRequested)="addTagToTransaction($event.tagName, $event.transactionId)"
   (tagRemovalRequested)="removeTagFromTransaction($event.tagName, $event.transactionId)"
   (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"

@@ -14,6 +14,7 @@ export class TransactionsListComponent implements OnInit {
   @Input() transactions$: Observable<Transaction[]>;
   @Input() tags$: Observable<Tag[]>;
   @Input() filters$: Observable<Filter[]>;
+  @Output() transactionIgnoreValueChanged: EventEmitter<Transaction> = new EventEmitter<Transaction>();
   @Output() tagAdditionRequested: EventEmitter<{ tagName: string, transactionId: number }> = new EventEmitter<{ tagName: string, transactionId: number }>();
   @Output() tagRemovalRequested: EventEmitter<{ tagName: string, transactionId: number }> = new EventEmitter<{ tagName: string, transactionId: number }>();
   @Output() tagColorChangeRequested: EventEmitter<{ tagName: string, color: string }> = new EventEmitter<{ tagName: string, color: string }>();
@@ -113,6 +114,10 @@ export class TransactionsListComponent implements OnInit {
         .map(tagName => this.tags.find(tag => tag.name === tagName))
         .filter(tag => !!tag)
       );
+  }
+
+  toggleIgnored(transaction: Transaction) {
+    this.transactionIgnoreValueChanged.emit(transaction);
   }
 
   private refresh() {

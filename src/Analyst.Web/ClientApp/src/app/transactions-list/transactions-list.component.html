@@ -14,8 +14,9 @@
           <th scope="col" style="width: 7em">Data</th>
           <th scope="col" style="width: 8%">Typ</th>
           <th scope="col" style="width: 47%">Opis</th>
-          <th scope="col" style="width: 7em">Kwota</th>
+          <th scope="col" style="width: 6em">Kwota</th>
           <th scope="col" style="width: 25%"></th>
+          <th scope="col" style="width: 5%"></th>
         </tr>
       </thead>
       <tbody>
@@ -48,8 +49,10 @@
                 </div>
               </span>
             </div>
-            <div class="ignore-transaction">
-              
+          </td>
+          <td>
+            <div class="ignore-transaction" (click)="toggleIgnored(transaction)">
+              {{ transaction.ignored ? 'Przywróć' : 'Ignoruj' }}
             </div>
           </td>
         </tr>

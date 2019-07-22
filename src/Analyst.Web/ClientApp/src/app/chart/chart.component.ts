@@ -50,7 +50,7 @@ export class ChartComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.transactionsSubscription = this.transactions$.subscribe(transactions => {
-      this.transactions = transactions.filter(trans => trans.amount < 0);
+      this.transactions = transactions.filter(trans => trans.amount < 0 && !trans.ignored);
       this.refresh();
     });
     

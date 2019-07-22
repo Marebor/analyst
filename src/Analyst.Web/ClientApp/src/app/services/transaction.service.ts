@@ -44,4 +44,8 @@ export class TransactionService {
   removeTagFromTransaction(tagName: string, transactionId: number): Observable<void> {
     return this.httpClient.delete<void>(`${this.originUrl}api/transactions/${transactionId}/tags/${tagName}`);
   }
+
+  setIgnoredValue(transactionId: number, value: boolean): Observable<void> {
+    return this.httpClient.post<void>(`${this.originUrl}api/transactions/${transactionId}/ignored`, `${value}`, { headers: { 'Content-Type': 'application/json' } });
+  }
 }
