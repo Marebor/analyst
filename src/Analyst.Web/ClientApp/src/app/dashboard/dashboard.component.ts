@@ -6,6 +6,7 @@ import { TransactionService } from '../services/transaction.service';
 import { BehaviorSubject } from 'rxjs';
 import { Tag } from '../models/tag.model';
 import { Filter } from '../models/filter.model';
+import moment = require('moment');
 
 @Component({
   selector: 'app-dashboard',
@@ -15,10 +16,12 @@ import { Filter } from '../models/filter.model';
 export class DashboardComponent implements OnInit {
 
   transactions$: BehaviorSubject<Transaction[]> = new BehaviorSubject<Transaction[]>([]);
+  filteredTransactions$: BehaviorSubject<Transaction[]> = new BehaviorSubject<Transaction[]>([]);
   tags$: BehaviorSubject<Tag[]> = new BehaviorSubject<Tag[]>([]);
   filters$: BehaviorSubject<Filter[]> = new BehaviorSubject<Filter[]>([]);
   showCalendar: boolean;
   dateRange: {from: Date, to: Date };
+  selectedTag: Tag;
   expandList: boolean = false;
 
   constructor(
@@ -41,7 +44,26 @@ export class DashboardComponent implements OnInit {
   }
 
   onFileSelected(file: any) {
-    this.transactionService.addTransactionsFromXml(file).subscribe(() => this.refresh());
+    this.transactionService.addTransactionsFromXml(file).subscribe(transactions => {
+      if (transactions.length > 0) {
+        this.transactions$.next(transactions);
+        this.dateRange = { 
+          from: transactions.reduce((a, b) => moment(a).isBefore(b.orderDate) ? a : b.orderDate, transactions[0].orderDate), 
+          to: transactions.reduce((a, b) => moment(a).isAfter(b.orderDate) ? a : b.orderDate, transactions[0].orderDate)
+        }
+        this.refresh();
+      }
+    });
+  }
+
+  onTagClicked(tag: Tag) {
+    if (!this.selectedTag || this.selectedTag.name !== tag.name) {
+      this.selectedTag = tag;
+    } else {
+      this.selectedTag = null;
+    }
+
+    this.filterTransactions();
   }
 
   onListModeChanged(mode: 'edit' | 'browse') {
@@ -67,6 +89,7 @@ export class DashboardComponent implements OnInit {
   private refresh() {
     this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to).subscribe(x => {
       this.transactions$.next(x);
+      this.filterTransactions();
     });
     
     this.tagService.getAvailableTags().subscribe(x => {
@@ -76,5 +99,12 @@ export class DashboardComponent implements OnInit {
     this.filterService.getFilters().subscribe(x => {
       this.filters$.next(x);
     })
+  }
+
+  private filterTransactions() {
+    const transactions = this.selectedTag && this.selectedTag.name !== 'Inne' ? 
+      this.filterService.filterTransactions(this.selectedTag.name, this.transactions$.value, this.filters$.value) :
+      this.transactions$.value;
+    this.filteredTransactions$.next(transactions);
   }
 }

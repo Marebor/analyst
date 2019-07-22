@@ -30,11 +30,11 @@ export class TransactionService {
     return this.httpClient.get<Transaction[]>(`${this.originUrl}api/transactions${queryString}`);
   }
 
-  addTransactionsFromXml(file: any): Observable<void> {
+  addTransactionsFromXml(file: any): Observable<Transaction[]> {
     const formData = new FormData(); 
     formData.append('file', file, file.name); 
 
-    return this.httpClient.post<void>(`${this.originUrl}api/transactions/xml`, formData);
+    return this.httpClient.post<Transaction[]>(`${this.originUrl}api/transactions/xml`, formData);
   }
 
   addTagTotransaction(tagName: string, transactionId: number): Observable<void> {

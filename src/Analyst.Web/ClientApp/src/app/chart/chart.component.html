@@ -13,7 +13,11 @@
   <div class="summary">
     <div *ngFor="let item of data; let i = index" class="tag-summary">
       <div class="amount">{{ pieChartData[i] | number:'1.2-2' }} zł</div>
-      <span *ngIf="i < data.length - 1; else othersSummary" class="badge badge-pill tag" [style.background-color]="pieChartColors[0].backgroundColor[i]">{{ pieChartLabels[i] }}</span>
+      <span *ngIf="i < data.length - 1 || data.length === 1; else othersSummary" class="badge badge-pill tag"
+      [style.background-color]="pieChartColors[0].backgroundColor[i]"
+      (click)="onTagClicked(item.tag)">
+        {{ pieChartLabels[i] }}
+      </span>
       <ng-template #othersSummary>
         <span class="others">Inne</span>
       </ng-template>

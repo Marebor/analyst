@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,9 +51,9 @@ namespace Analyst.Web.Controllers
         public async Task<IActionResult> LoadFromXml()
         {
             Stream file = Request.Form.Files.First().OpenReadStream();
-            await transactionService.SaveTransactionsFromXml(file);
+            IEnumerable<Transaction> newTransactions = await transactionService.SaveTransactionsFromXml(file);
 
-            return Ok();
+            return Ok(newTransactions);
         }
 
         [HttpPost("{transactionId}/tags")]

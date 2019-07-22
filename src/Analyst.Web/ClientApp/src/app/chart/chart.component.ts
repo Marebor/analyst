@@ -16,7 +16,7 @@ export class ChartComponent implements OnInit, OnDestroy {
   @Input() transactions$: Observable<Transaction[]>;
   @Input() tags$: Observable<Tag[]>;
   @Input() filters$: Observable<Filter[]>;
-  @Output() tagSelected: EventEmitter<Tag> = new EventEmitter<Tag>();
+  @Output() tagClicked: EventEmitter<Tag> = new EventEmitter<Tag>();
   transactions: Transaction[];
   tags: Tag[];
   filters: Filter[];
@@ -76,25 +76,43 @@ export class ChartComponent implements OnInit, OnDestroy {
   }
 
   chartClicked($event: any) {
+    const tag = <Tag>this.data[$event.active[0]._index].tag;
+    this.onTagClicked(tag);
+  }
 
+  onTagClicked(tag: Tag) {
+    this.tagClicked.emit(tag);
   }
 
   private refresh() {
     if (!this.dataAvailable) {
       return;
     }
-
+    
     this.pieChartLabels = null;
 
-    this.data = this.tags.map(tag => <ChartDataItem>{
-      tag,
-      transactions: this.filterService.filterTransactions(tag.name, this.transactions, this.filters),
+    this.data = this.tags.map(tag => {
+      const transactions = this.filterService.filterTransactions(tag.name, this.transactions, this.filters);
+
+      return <ChartDataItem>{
+        tag,
+        transactions,
+        amount: this.getTotalAmount(transactions),
+      };
     })
-    .sort((a, b) => this.getTotalAmount(a.transactions) > this.getTotalAmount(b.transactions) ? -1 : 1);
+    .filter(x => x.amount !== 0)
+    .sort((a, b) => a.amount > b.amount ? -1 : 1);
 
-    const otherTransactions = this.transactions.filter(transaction => !this.data.find(item => item.transactions.find(t => t.id === transaction.id)));
+    const otherTransactions = this.transactions.filter(transaction => 
+      !this.data.find(item => item.transactions.find(t => t.id === transaction.id)));
 
-    this.data.push({ tag: { name: 'Inne', color: 'lightgray' }, transactions: otherTransactions });
+    if (otherTransactions.length > 0) {
+      this.data.push({ 
+        tag: { name: 'Inne', color: 'lightgray' }, 
+        transactions: otherTransactions,
+        amount: this.getTotalAmount(otherTransactions),
+      });
+    }
 
     setTimeout(() => {
       this.pieChartLabels = this.data.map(x => x.tag.name);
