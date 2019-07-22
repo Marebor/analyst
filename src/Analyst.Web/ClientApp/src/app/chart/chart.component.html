@@ -11,13 +11,12 @@
       (chartClick)="chartClicked($event)"></canvas>
   </div>
   <div class="summary">
-    <div *ngFor="let tag of tags; let i = index" class="tag-summary">
+    <div *ngFor="let item of data; let i = index" class="tag-summary">
       <div class="amount">{{ pieChartData[i] | number:'1.2-2' }} zł</div>
-      <span class="badge badge-pill tag" [style.background-color]="tag.color">{{ tag.name }}</span>
-    </div>
-    <div class="tag-summary">
-      <div class="amount">{{ pieChartData[pieChartData.length - 1] | number:'1.2-2' }} zł</div>
-      <span class="others">Inne</span>
+      <span *ngIf="i < data.length - 1; else othersSummary" class="badge badge-pill tag" [style.background-color]="pieChartColors[0].backgroundColor[i]">{{ pieChartLabels[i] }}</span>
+      <ng-template #othersSummary>
+        <span class="others">Inne</span>
+      </ng-template>
     </div>
     <div class="amount total">{{ total | number:'1.2-2' }} zł</div>
   </div>

@@ -42,11 +42,14 @@
                   </div>
                   <ng-template #notForbidden>
                     <input *ngIf="changingTagColor" type="text" class="form-control form-control-sm tag-color-input" autofocus (keyup.enter)="changeTagColor(tagColorInput, tag.name)" #tagColorInput />
-                    <button *ngIf="!changingTagColor" class="btn btn-link change-color-button" (click)="changeColorClicked()">Change color</button>
-                    <button *ngIf="!changingTagColor" class="btn btn-link remove-tag-button" (click)="removeTagFromTransaction(tag.name, transaction.id)">Remove</button>
+                    <button *ngIf="!changingTagColor" class="btn btn-link change-color-button" (click)="changeColorClicked()">Zmień kolor</button>
+                    <button *ngIf="!changingTagColor" class="btn btn-link remove-tag-button" (click)="removeTagFromTransaction(tag.name, transaction.id)">Usuń</button>
                   </ng-template>
                 </div>
               </span>
+            </div>
+            <div class="ignore-transaction">
+              
             </div>
           </td>
         </tr>

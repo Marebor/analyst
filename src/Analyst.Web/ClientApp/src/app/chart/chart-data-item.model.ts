@@ -1,5 +1,7 @@
+import { Transaction } from './../models/transaction.model';
+import { Tag } from "../models/tag.model";
+
 export interface ChartDataItem {
-  label: string,
-  color: string,
-  amount: number,
+  tag: Tag,
+  transactions: Transaction[],
 }

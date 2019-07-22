@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
 import { Subscription } from 'rxjs/Subscription';
 import { Filter } from '../models/filter.model';
+import { ChartDataItem } from './chart-data-item.model';
 
 @Component({
   selector: 'app-chart',
@@ -19,7 +20,7 @@ export class ChartComponent implements OnInit, OnDestroy {
   transactions: Transaction[];
   tags: Tag[];
   filters: Filter[];
-  total: number;
+  data: ChartDataItem[] = [];
   private transactionsSubscription: Subscription;
   private tagsSubscription: Subscription;
   private filtersSubscription: Subscription;
@@ -38,6 +39,10 @@ export class ChartComponent implements OnInit, OnDestroy {
 
   get displayChart(): boolean {
     return !!this.pieChartLabels && !!this.pieChartData && this.dataAvailable;
+  }
+
+  get total(): number {
+    return this.transactions.reduce((a, b) => a - b.amount, 0);
   }
 
   constructor(private filterService: FilterService) {
@@ -80,33 +85,21 @@ export class ChartComponent implements OnInit, OnDestroy {
     }
 
     this.pieChartLabels = null;
-    this.pieChartData = null;
-    
-    let pieChartLabels = this.tags.map(tag => tag.name);
-    let pieChartColors = [{ backgroundColor: this.tags.map(tag => tag.color) }];
-    let pieChartData = pieChartLabels.map(tagName => this.getTotalAmount(
-      this.filterService.filterTransactions(tagName, this.transactions, this.filters)));
 
-    let data: { tagName: string, tagColor: string, amount: number }[] = [];
-    pieChartLabels.forEach((label, index) => {
-      data.push({ tagName: label, tagColor: pieChartColors[0].backgroundColor[index], amount: pieChartData[index]});
-    });
+    this.data = this.tags.map(tag => <ChartDataItem>{
+      tag,
+      transactions: this.filterService.filterTransactions(tag.name, this.transactions, this.filters),
+    })
+    .sort((a, b) => this.getTotalAmount(a.transactions) > this.getTotalAmount(b.transactions) ? -1 : 1);
 
-    data.sort((a, b) => a.amount > b.amount ? -1 : 1);
-    this.tags = data.map(x => this.tags.find(t => t.name === x.tagName));
-    
-    const otherTransactions = this.transactions.filter(x => 
-      x.assignedTagNames.length === 0 && this.filterService.getTagNames(x, this.filters).length === 0);
-    const othersAmount = this.getTotalAmount(otherTransactions);
+    const otherTransactions = this.transactions.filter(transaction => !this.data.find(item => item.transactions.find(t => t.id === transaction.id)));
 
-    data.push({ tagName: 'Inne', tagColor: 'lightgray', amount: othersAmount });
-    data = data.map(x => { return { ...x, amount: Math.round(x.amount * 100) / 100 } });
-    this.total = data.reduce((a, b) => a + b.amount, 0);
+    this.data.push({ tag: { name: 'Inne', color: 'lightgray' }, transactions: otherTransactions });
 
     setTimeout(() => {
-      this.pieChartLabels = data.map(x => x.tagName);
-      this.pieChartData = data.map(x => x.amount);
-      this.pieChartColors = [{ backgroundColor: data.map(x => x.tagColor) }];
+      this.pieChartLabels = this.data.map(x => x.tag.name);
+      this.pieChartColors = [{ backgroundColor: this.data.map(x => x.tag.color) }];
+      this.pieChartData = this.data.map(x => this.getTotalAmount(x.transactions));
     });
   }
 

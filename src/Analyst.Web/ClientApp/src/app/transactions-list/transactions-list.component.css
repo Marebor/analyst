@@ -109,7 +109,7 @@ td {
   left: 0;
   top: 0;
   transform: translateX(-100%) translateY(-5px);
-  padding: 5px;
+  padding: 5px 5px 5px 15px;
   border-radius: 5px;
   font-size: 12px;
   white-space: nowrap;
