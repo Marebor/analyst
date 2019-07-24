@@ -3,9 +3,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { Transaction } from '../models/transaction.model';
 import { DatePipe } from '@angular/common';
+import { tap } from 'rxjs/operators/tap';
+import moment = require('moment');
+import { Subject } from 'rxjs/Subject';
 
 @Injectable()
 export class TransactionService {
+  private transactions: Transaction[] = [];
+  private _newTransactionsFetched$: Subject<Transaction[]> = new Subject<Transaction[]>();
+
+  get newTransactionsFetched$(): Observable<Transaction[]> {
+    return this._newTransactionsFetched$.asObservable();
+  }
 
   constructor(
     @Inject('BASE_URL') private originUrl: string, 
@@ -27,25 +36,42 @@ export class TransactionService {
       queryString += queryString === '?' ? expression : '&' + expression ;
     }
 
-    return this.httpClient.get<Transaction[]>(`${this.originUrl}api/transactions${queryString}`);
+    return this.httpClient.get<Transaction[]>(`${this.originUrl}api/transactions${queryString}`).pipe(
+      tap(transactions => {
+        const newTransactions = [];
+        transactions.forEach(t => {
+          if (!this.transactions.find(x => x.id === t.id)) {
+            newTransactions.push(t);
+          }
+        })
+
+        if (newTransactions.length > 0) {
+          this.transactions.push(...newTransactions);
+          this._newTransactionsFetched$.next(newTransactions);
+        }
+      })
+    );
   }
 
   addTransactionsFromXml(file: any): Observable<Transaction[]> {
     const formData = new FormData(); 
     formData.append('file', file, file.name); 
 
-    return this.httpClient.post<Transaction[]>(`${this.originUrl}api/transactions/xml`, formData);
-  }
-
-  addTagTotransaction(tagName: string, transactionId: number): Observable<void> {
-    return this.httpClient.post<void>(`${this.originUrl}api/transactions/${transactionId}/tags`, `\"${tagName}\"` , { headers: { 'Content-Type': 'application/json' } });
-  }
-
-  removeTagFromTransaction(tagName: string, transactionId: number): Observable<void> {
-    return this.httpClient.delete<void>(`${this.originUrl}api/transactions/${transactionId}/tags/${tagName}`);
+    return this.httpClient.post<Transaction[]>(`${this.originUrl}api/transactions/xml`, formData).pipe(
+      tap(newTransactions => {
+        this.transactions.push(...newTransactions);
+        this._newTransactionsFetched$.next(newTransactions);
+      })
+    );
   }
 
   setIgnoredValue(transactionId: number, value: boolean): Observable<void> {
-    return this.httpClient.post<void>(`${this.originUrl}api/transactions/${transactionId}/ignored`, `${value}`, { headers: { 'Content-Type': 'application/json' } });
+    return this.httpClient.post<void>(`${this.originUrl}api/transactions/${transactionId}/ignored`, `${value}`, { headers: { 'Content-Type': 'application/json' } }).pipe(
+      tap(() => this.transactions.find(t => t.id === transactionId).ignored = value)
+    );
+  }
+
+  private sort(transactions: Transaction[]): Transaction[] {
+    return transactions.sort((a, b) => moment(a.orderDate).isBefore(b.orderDate) ? -1 : 1)
   }
 }

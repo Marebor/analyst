@@ -7,11 +7,13 @@ using Analyst.Core.Services.Abstract;
 
 namespace Analyst.Web.Infrastructure
 {
-    public class InMemoryStore : IStore<Transaction>, IStore<Tag>, IStore<Filter>
+    public class InMemoryStore : IStore<Transaction>, IStore<Tag>, IStore<Filter>, IStore<TagAssignment>, IStore<TagSuppression>
     {
         private readonly List<Transaction> transactions = new List<Transaction>();
         private readonly List<Tag> tags = new List<Tag>();
         private readonly List<Filter> filters = new List<Filter>();
+        private readonly List<TagAssignment> tagAssignments = new List<TagAssignment>();
+        private readonly List<TagSuppression> tagSuppressions = new List<TagSuppression>();
 
         public InMemoryStore()
         {
@@ -27,6 +29,12 @@ namespace Analyst.Web.Infrastructure
         public Task Delete(Filter entity)
             => Task.FromResult(filters.Remove(entity));
 
+        public Task Delete(TagAssignment entity)
+            => Task.FromResult(tagAssignments.Remove(entity));
+
+        public Task Delete(TagSuppression entity)
+            => Task.FromResult(tagSuppressions.Remove(entity));
+
         public Task<IEnumerable<TOut>> Query<TOut>(System.Func<IQueryable<Transaction>, IQueryable<TOut>> filter)
             => Task.FromResult(filter(transactions.AsQueryable()).AsEnumerable());
 
@@ -35,6 +43,12 @@ namespace Analyst.Web.Infrastructure
 
         public Task<IEnumerable<TOut>> Query<TOut>(System.Func<IQueryable<Filter>, IQueryable<TOut>> filter)
             => Task.FromResult(filter(filters.AsQueryable()).AsEnumerable());
+
+        public Task<IEnumerable<TOut>> Query<TOut>(System.Func<IQueryable<TagAssignment>, IQueryable<TOut>> filter)
+            => Task.FromResult(filter(tagAssignments.AsQueryable()).AsEnumerable());
+
+        public Task<IEnumerable<TOut>> Query<TOut>(System.Func<IQueryable<TagSuppression>, IQueryable<TOut>> filter)
+            => Task.FromResult(filter(tagSuppressions.AsQueryable()).AsEnumerable());
 
         public Task Save(Transaction entity)
             => SaveEntity(entity, transactions);
@@ -45,6 +59,12 @@ namespace Analyst.Web.Infrastructure
         public Task Save(Filter entity)
             => SaveEntity(entity, filters);
 
+        public Task Save(TagAssignment entity)
+            => SaveEntity(entity, tagAssignments);
+
+        public Task Save(TagSuppression entity)
+            => SaveEntity(entity, tagSuppressions);
+
         public Task Save(IEnumerable<Transaction> entities)
             => SaveEntities(entities, transactions);
 
@@ -53,6 +73,12 @@ namespace Analyst.Web.Infrastructure
 
         public Task Save(IEnumerable<Filter> entities)
             => SaveEntities(entities, filters);
+
+        public Task Save(IEnumerable<TagAssignment> entities)
+            => SaveEntities(entities, tagAssignments);
+
+        public Task Save(IEnumerable<TagSuppression> entities)
+            => SaveEntities(entities, tagSuppressions);
 
         private Task SaveEntity<T>(T entity, List<T> list) where T : IEntity
         {

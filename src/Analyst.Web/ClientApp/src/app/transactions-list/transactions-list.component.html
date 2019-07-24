@@ -31,7 +31,7 @@
               <input type="text" class="form-control form-control-sm tag-input" (keyup.enter)="addNewTagTotransaction(tagNameInput, transaction.id)" #tagNameInput/>
             </div>
             <div class="tags">
-              <span *ngFor="let tag of getTagsForTransaction(transaction)" class="tag" (mouseleave)="tagBlurred()">
+              <span *ngFor="let tag of transaction.tags" class="tag" (mouseleave)="tagBlurred()">
                 <span class="badge badge-pill" [class.forbidden]="isTagForbidden(tag, transaction)"
                   [style.background-color]="tag.color" (mouseenter)="tagHovered(tag.name, transaction.id)">
                   {{ tag.name }}

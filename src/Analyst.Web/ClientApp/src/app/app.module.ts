@@ -16,6 +16,7 @@ import { FilterManagerComponent } from './filter-manager/filter-manager.componen
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { DateRangeComponent } from './date-range/date-range.component';
 import { DatePipe } from '@angular/common';
+import { MappingService } from './services/mapping.service';
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import { DatePipe } from '@angular/common';
     TransactionService,
     TagService,
     FilterService,
+    MappingService,
     DatePipe
   ],
   bootstrap: [AppComponent]

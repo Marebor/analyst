@@ -1,9 +1,11 @@
+import { MappingService } from './../services/mapping.service';
 import { Transaction } from './../models/transaction.model';
 import { FilterService } from './../services/filter.service';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
 import { Filter } from '../models/filter.model';
+import { TagService } from '../services/tag.service';
 
 @Component({
   selector: 'app-transactions-list',
@@ -12,38 +14,26 @@ import { Filter } from '../models/filter.model';
 })
 export class TransactionsListComponent implements OnInit {
   @Input() transactions$: Observable<Transaction[]>;
-  @Input() tags$: Observable<Tag[]>;
-  @Input() filters$: Observable<Filter[]>;
   @Output() transactionIgnoreValueChanged: EventEmitter<Transaction> = new EventEmitter<Transaction>();
-  @Output() tagAdditionRequested: EventEmitter<{ tagName: string, transactionId: number }> = new EventEmitter<{ tagName: string, transactionId: number }>();
-  @Output() tagRemovalRequested: EventEmitter<{ tagName: string, transactionId: number }> = new EventEmitter<{ tagName: string, transactionId: number }>();
   @Output() tagColorChangeRequested: EventEmitter<{ tagName: string, color: string }> = new EventEmitter<{ tagName: string, color: string }>();
   @Output() modeChanged: EventEmitter<'edit' | 'browse'> = new EventEmitter<'edit' | 'browse'>();
-  filterAssignments: { transaction: Transaction, tags: Tag[] }[] = [];
   selectedTransaction: Transaction;
   transactions: Transaction[];
   tags: Tag[];
-  filters: Filter[];
   tagTooltipActive: { tagName: string, transactionId: number };
   changingTagColor: boolean;
   editModeActive: boolean = false;
 
-  constructor(private filterService: FilterService) { }
+  constructor(private tagService: TagService, private mappingService: MappingService) {
+  }
 
   ngOnInit() {
     this.transactions$.subscribe(x => {
       this.transactions = x;
-      this.refresh();
     });
 
-    this.tags$.subscribe(x => {
+    this.tagService.tags$.subscribe(x => {
       this.tags = x;
-      this.refresh();
-    });
-
-    this.filters$.subscribe(x => {
-      this.filters = x;
-      this.refresh();
     });
   }
 
@@ -62,21 +52,21 @@ export class TransactionsListComponent implements OnInit {
 
   addTagToSelectedTransaction(tag: Tag) {
     if (this.selectedTransaction) {
-      this.tagAdditionRequested.emit({ tagName: tag.name, transactionId: this.selectedTransaction.id });
+      this.mappingService.addTransactionToTag(tag.name, this.selectedTransaction.id).subscribe();
     }
   }
 
   removeTagFromTransaction(tagName: string, transactionId: number) {
-    this.tagRemovalRequested.emit({ tagName, transactionId });
+    this.mappingService.removeTransactionFromTag(tagName, transactionId).subscribe();
   }
 
   addNewTagTotransaction(inputElement: any, transactionId: number) {
-    this.tagAdditionRequested.emit({ tagName: inputElement.value, transactionId });
+    this.mappingService.addTransactionToTag(inputElement.value, transactionId).subscribe();
     inputElement.value = null;
   }
 
   addTagToTransaction(tag: Tag, transaction: Transaction) {
-    this.tagAdditionRequested.emit({ tagName: tag.name, transactionId: transaction.id });
+    this.mappingService.addTransactionToTag(tag.name, transaction.id).subscribe();
   }
 
   tagHovered(tagName: string, transactionId: number) {
@@ -89,7 +79,8 @@ export class TransactionsListComponent implements OnInit {
   }
 
   isTagForbidden(tag: Tag, transaction: Transaction) {
-    return transaction.forbiddenTagNames.find(name => name === tag.name);
+    //return transaction.forbiddenTagNames.find(name => name === tag.name);
+    return false;
   }
 
   isTagTooltipActive(tagName: string, transactionId: number) {
@@ -101,33 +92,13 @@ export class TransactionsListComponent implements OnInit {
   }
 
   changeTagColor(tagColorInput: any, tagName: string) {
-    this.tagColorChangeRequested.emit({ tagName, color: tagColorInput.value });
+    this.tagService.changeTagColor(tagName, tagColorInput.value).subscribe();
     tagColorInput.value = null;
     this.changingTagColor = false;
     this.tagTooltipActive = null;
   }
 
-  getTagsForTransaction(transaction: Transaction): Tag[] {
-    const filterAssignment = this.filterAssignments.find(x => x.transaction.id === transaction.id);
-    return (filterAssignment ? filterAssignment.tags : [])
-      .concat(transaction.assignedTagNames
-        .map(tagName => this.tags.find(tag => tag.name === tagName))
-        .filter(tag => !!tag)
-      );
-  }
-
   toggleIgnored(transaction: Transaction) {
     this.transactionIgnoreValueChanged.emit(transaction);
-  }
-
-  private refresh() {
-    if (this.transactions && this.tags && this.filters) {
-      this.filterAssignments = this.transactions.map(transaction => {
-        return { transaction, tags: this.filterService
-          .getTagNames(transaction, this.filters)
-          .map(tagName => this.tags.find(tag => tag.name === tagName))
-          .filter(tag => !!tag) };
-      });
-    }
   }
 }

@@ -34,6 +34,8 @@ namespace Analyst.Web
             services.AddSingleton<IStore<Transaction>, InMemoryStore>();
             services.AddSingleton<IStore<Tag>, InMemoryStore>();
             services.AddSingleton<IStore<Filter>, InMemoryStore>();
+            services.AddSingleton<IStore<TagAssignment>, InMemoryStore>();
+            services.AddSingleton<IStore<TagSuppression>, InMemoryStore>();
             services.AddScoped<TransactionService>();
             services.AddScoped<TagService>();
         }

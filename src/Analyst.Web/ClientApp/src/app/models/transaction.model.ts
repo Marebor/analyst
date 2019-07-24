@@ -1,3 +1,5 @@
+import { Tag } from "./tag.model";
+
 export interface Transaction {
   id: number,
   orderDate: Date,
@@ -7,6 +9,5 @@ export interface Transaction {
   amount: number,
   endingBalance: number,
   ignored: boolean,
-  assignedTagNames: string[],
-  forbiddenTagNames: string[],
+  tags: Tag[],
 }

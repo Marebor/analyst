@@ -1,12 +1,18 @@
+import { Subject } from 'rxjs/Subject';
+import { Mapping, MappingsChange } from './../services/mapping.model';
+import { MappingService } from './../services/mapping.service';
 import { FilterService } from './../services/filter.service';
 import { TagService } from './../services/tag.service';
 import { Transaction } from './../models/transaction.model';
 import { Component, OnInit } from '@angular/core';
 import { TransactionService } from '../services/transaction.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { Tag } from '../models/tag.model';
 import { Filter } from '../models/filter.model';
 import moment = require('moment');
+import { take } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
+import { forkJoin } from 'rxjs/observable/forkJoin';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,10 +21,10 @@ import moment = require('moment');
 })
 export class DashboardComponent implements OnInit {
 
-  transactions$: BehaviorSubject<Transaction[]> = new BehaviorSubject<Transaction[]>([]);
-  filteredTransactions$: BehaviorSubject<Transaction[]> = new BehaviorSubject<Transaction[]>([]);
-  tags$: BehaviorSubject<Tag[]> = new BehaviorSubject<Tag[]>([]);
-  filters$: BehaviorSubject<Filter[]> = new BehaviorSubject<Filter[]>([]);
+  filteredTransactions$: Subject<Transaction[]> = new Subject<Transaction[]>();
+  mappings: Mapping[];
+  transactions: Transaction[];
+  tags: Tag[];
   showCalendar: boolean;
   dateRange: {from: Date, to: Date };
   selectedTag: Tag;
@@ -27,31 +33,55 @@ export class DashboardComponent implements OnInit {
   constructor(
     private transactionService: TransactionService, 
     private tagService: TagService,
-    private filterService: FilterService
+    private mappingService: MappingService,
     ) { }
 
   ngOnInit() {
     const today = new Date();
     const days = 14;
     this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
-    this.refresh();
+
+    // forkJoin(
+    //   this.mappingService.mappings$.pipe(take(1)), 
+    //   this.refreshTransactions().pipe(take(1)), 
+    //   this.tagService.tags$).pipe(take(1))
+    // .subscribe(([mappings, transactions, tags]) => {
+    //   this.mappings = mappings;
+    //   this.tags = tags;
+    //   this.mapTags(mappings);
+    // });
+
+    // this.mappingService.mappings$.pipe(take(1)).subscribe(x => {
+    //   this.mappings = x;
+    //   this.mapTags(this.mappings);
+    // });
+    this.refreshTransactions().subscribe();
+    this.tagService.tags$.subscribe(x => {
+      this.tags = x;
+      this.mapTags(this.mappings);
+    });
+
+    this.mappingService.mappingsChanges$.subscribe(c => this.handleMappingChange(c))
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
     this.dateRange = dateRange;
-    this.refresh();
+    this.refreshTransactions().subscribe();
     this.showCalendar = false;
   }
 
   onFileSelected(file: any) {
     this.transactionService.addTransactionsFromXml(file).subscribe(transactions => {
       if (transactions.length > 0) {
-        this.transactions$.next(transactions);
+        this.transactions = transactions;
+        this.transactions.forEach(t => t.tags = []);
+        this.mapTags(this.mappings);
+        this.selectedTag = null;
+        this.filteredTransactions$.next(transactions);
         this.dateRange = { 
           from: transactions.reduce((a, b) => moment(a).isBefore(b.orderDate) ? a : b.orderDate, transactions[0].orderDate), 
           to: transactions.reduce((a, b) => moment(a).isAfter(b.orderDate) ? a : b.orderDate, transactions[0].orderDate)
         }
-        this.refresh();
       }
     });
   }
@@ -63,7 +93,7 @@ export class DashboardComponent implements OnInit {
       this.selectedTag = null;
     }
 
-    this.filterTransactions();
+    this.emitFilteredTransactions();
   }
 
   onListModeChanged(mode: 'edit' | 'browse') {
@@ -71,40 +101,74 @@ export class DashboardComponent implements OnInit {
   }
 
   changeTransactionIgnoreValue(transaction: Transaction) {
-    this.transactionService.setIgnoredValue(transaction.id, !transaction.ignored).subscribe(() => this.refresh());
+    const currentValue = true && transaction.ignored;
+    this.transactionService.setIgnoredValue(transaction.id, !currentValue).subscribe(() => {
+      this.transactions.find(t => t.id === transaction.id).ignored = !currentValue;
+      this.emitFilteredTransactions();
+    });
   }
 
-  addTagToTransaction(tagName: string, transactionId: number) {
-    this.transactionService.addTagTotransaction(tagName, transactionId).subscribe(() => this.refresh());
+  private mapTags(mappings: Mapping[]) {
+    if (!mappings || !this.tags || !this.transactions) {
+      return;
+    }
+
+    mappings.filter(m => this.transactions.find(t => t.id === m.transaction.id)).forEach(m => {
+      const tag = this.tags.find(t => t.name === m.tag.name);
+      const transaction = this.transactions.find(t => t.id === m.transaction.id);
+      
+      if (transaction.tags) {
+        transaction.tags.push(tag);
+      } else {
+        transaction.tags = [tag];
+      }
+    });
   }
 
-  removeTagFromTransaction(tagName: string, transactionId: number) {
-    this.transactionService.removeTagFromTransaction(tagName, transactionId).subscribe(() => this.refresh());
-  }
+  private handleMappingChange(changes: MappingsChange) {
+    if (!this.mappings) {
+      this.mappings = changes.newMappings;
+    } else {
+      this.mappings.push(...changes.newMappings);
+    }
 
-  changeTagColor(tagName: string, color: string) {
-    this.tagService.changeTagColor(tagName, color).subscribe(() => this.refresh());
-  }
+    this.mapTags(changes.newMappings);
 
-  private refresh() {
-    this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to).subscribe(x => {
-      this.transactions$.next(x);
-      this.filterTransactions();
+    changes.deletedMappings.forEach(m => {
+      const transaction = this.transactions.find(t => t.id === m.transaction.id);
+      const index = transaction.tags.findIndex(t => t.name === m.tag.name);
+      transaction.tags.splice(index, 1);
     });
     
-    this.tagService.getAvailableTags().subscribe(x => {
-      this.tags$.next(x);
-    });
-
-    this.filterService.getFilters().subscribe(x => {
-      this.filters$.next(x);
-    })
+    if (this.transactions) {
+      this.emitFilteredTransactions();
+    }
   }
 
-  private filterTransactions() {
-    const transactions = this.selectedTag && this.selectedTag.name !== 'Inne' ? 
-      this.filterService.filterTransactions(this.selectedTag.name, this.transactions$.value, this.filters$.value) :
-      this.transactions$.value;
-    this.filteredTransactions$.next(transactions);
+  private refreshTransactions(): Observable<Transaction[]> {
+    return this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to).pipe(
+      tap(x => {
+        this.transactions = x;
+        this.transactions.forEach(t => t.tags = []);
+        this.mapTags(this.mappings);
+
+        if (this.mappings) {
+          this.emitFilteredTransactions();
+        }
+      }));
+  }
+
+  private emitFilteredTransactions() {
+    if (!this.selectedTag) {
+      this.filteredTransactions$.next(this.transactions);
+    } else if (this.selectedTag.name !== 'Inne') {
+      this.filteredTransactions$.next(
+        this.transactions.filter(t => t.tags.find(x => x.name === this.selectedTag.name))
+      );
+    } else {
+      this.filteredTransactions$.next(
+        this.transactions.filter(t => t.tags.length === 0)
+      );
+    }
   }
 }

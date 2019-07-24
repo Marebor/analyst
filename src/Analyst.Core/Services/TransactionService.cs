@@ -28,64 +28,9 @@ namespace Analyst.Core.Services
                 .Where(x => !alreadyExistingtransactions.Any(t => t.OrderDate == x.OrderDate && t.Amount == x.Amount && t.EndingBalance == x.EndingBalance))
                 .ToList();
 
-            transactionsToSave.ForEach(t =>
-            {
-                t.AssignedTagNames = new List<string>();
-                t.ForbiddenTagNames = new List<string>();
-            });
-
             await transactionStore.Save(transactionsToSave);
 
             return transactionsToSave;
-        }
-
-        public async Task AddTagToTransaction(int transactionId, string tagName)
-        {
-            var transaction = await GetTransaction(transactionId);
-            
-            if (transaction.AssignedTagNames.Contains(tagName))
-            {
-                return;
-            }
-            else if (transaction.ForbiddenTagNames.Contains(tagName))
-            {
-                transaction.ForbiddenTagNames.Remove(tagName);
-            }
-            else
-            {
-                var tag = await GetTagByName(tagName);
-
-                if (tag == null)
-                {
-                    tag = new Tag
-                    {
-                        Name = tagName,
-                        Color = "gray",
-                    };
-
-                    await tagStore.Save(tag);
-                }
-
-                transaction.AssignedTagNames.Add(tagName);
-            }            
-
-            await transactionStore.Save(transaction);
-        }
-
-        public async Task RemoveTagFromTransaction(string tagName, int transactionId)
-        {
-            var transaction = await GetTransaction(transactionId);
-
-            if (transaction.AssignedTagNames.Contains(tagName))
-            {
-                transaction.AssignedTagNames.Remove(tagName);
-            }
-            else if (!transaction.ForbiddenTagNames.Contains(tagName))
-            {
-                transaction.ForbiddenTagNames.Add(tagName);
-            }
-
-            await transactionStore.Save(transaction);
         }
 
         public async Task SetIgnoredValue(int transactionId, bool value)

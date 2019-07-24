@@ -4,7 +4,6 @@ import { Transaction } from '../models/transaction.model';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
 import { Subscription } from 'rxjs/Subscription';
-import { Filter } from '../models/filter.model';
 import { ChartDataItem } from './chart-data-item.model';
 
 @Component({
@@ -14,16 +13,10 @@ import { ChartDataItem } from './chart-data-item.model';
 })
 export class ChartComponent implements OnInit, OnDestroy {
   @Input() transactions$: Observable<Transaction[]>;
-  @Input() tags$: Observable<Tag[]>;
-  @Input() filters$: Observable<Filter[]>;
   @Output() tagClicked: EventEmitter<Tag> = new EventEmitter<Tag>();
   transactions: Transaction[];
-  tags: Tag[];
-  filters: Filter[];
   data: ChartDataItem[] = [];
   private transactionsSubscription: Subscription;
-  private tagsSubscription: Subscription;
-  private filtersSubscription: Subscription;
 
   pieChartLabels: string[];
   pieChartData: number[];
@@ -34,7 +27,7 @@ export class ChartComponent implements OnInit, OnDestroy {
   };
 
   get dataAvailable(): boolean {
-    return this.tags && this.tags.length > 0 && this.transactions && this.transactions.length > 0;
+    return this.transactions && this.transactions.length > 0;
   }
 
   get displayChart(): boolean {
@@ -53,22 +46,10 @@ export class ChartComponent implements OnInit, OnDestroy {
       this.transactions = transactions.filter(trans => trans.amount < 0 && !trans.ignored);
       this.refresh();
     });
-    
-    this.tagsSubscription = this.tags$.subscribe(tags => {
-      this.tags = tags;
-      this.refresh();
-    });
-    
-    this.filtersSubscription = this.filters$.subscribe(filters => {
-      this.filters = filters;
-      this.refresh();
-    });
   }
 
   ngOnDestroy() {
     this.transactionsSubscription.unsubscribe();
-    this.tagsSubscription.unsubscribe();
-    this.filtersSubscription.unsubscribe();
   }
 
   chartHovered($event: any) {
@@ -88,23 +69,30 @@ export class ChartComponent implements OnInit, OnDestroy {
     if (!this.dataAvailable) {
       return;
     }
-    
+
     this.pieChartLabels = null;
 
-    this.data = this.tags.map(tag => {
-      const transactions = this.filterService.filterTransactions(tag.name, this.transactions, this.filters);
+    const chartDataItems: ChartDataItem[] = [];
+    this.transactions.forEach(transaction => {
+      if (transaction.tags) {
+        transaction.tags.forEach(tag => {
+          const item = chartDataItems.find(item => item.tag.name === tag.name);
+  
+          if (item) {
+            item.transactions.push(transaction);
+          } else {
+            chartDataItems.push({ tag, transactions: [transaction], amount: null})
+          }
+        });
+      }
+    });
 
-      return <ChartDataItem>{
-        tag,
-        transactions,
-        amount: this.getTotalAmount(transactions),
-      };
-    })
-    .filter(x => x.amount !== 0)
-    .sort((a, b) => a.amount > b.amount ? -1 : 1);
+    chartDataItems.forEach(item => item.amount = this.getTotalAmount(item.transactions));
+    chartDataItems.sort((a, b) => a.amount > b.amount ? -1 : 1);
+    this.data = chartDataItems;
 
     const otherTransactions = this.transactions.filter(transaction => 
-      !this.data.find(item => item.transactions.find(t => t.id === transaction.id)));
+      !this.data.find(item => !!item.transactions.find(t => t.id === transaction.id)));
 
     if (otherTransactions.length > 0) {
       this.data.push({ 

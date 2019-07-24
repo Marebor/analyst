@@ -56,22 +56,6 @@ namespace Analyst.Web.Controllers
             return Ok(newTransactions);
         }
 
-        [HttpPost("{transactionId}/tags")]
-        public async Task<IActionResult> AddTag(int transactionId, [FromBody]string tagName)
-        {
-            await transactionService.AddTagToTransaction(transactionId, tagName);
-
-            return Ok();
-        }
-
-        [HttpDelete("{transactionId}/tags/{tagName}")]
-        public async Task<IActionResult> RemoveTag(int transactionId, string tagName)
-        {
-            await transactionService.RemoveTagFromTransaction(tagName, transactionId);
-
-            return Ok();
-        }
-
         [HttpPost("{transactionId}/ignored")]
         public async Task<IActionResult> SetIgnored(int transactionId, [FromBody]bool value)
         {

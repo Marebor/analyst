@@ -14,14 +14,11 @@
   </div>
 </div>
 <div class="chart-wrapper">
-  <app-chart [transactions$]="filteredTransactions$" [tags$]="tags$" [filters$]="filters$"
-  (tagClicked)="onTagClicked($event)"></app-chart>
+  <app-chart [transactions$]="filteredTransactions$" (tagClicked)="onTagClicked($event)"></app-chart>
 </div>
 <div class="list-wrapper" [class.expanded]="expandList">
-  <app-transactions-list [transactions$]="filteredTransactions$" [tags$]="tags$" [filters$]="filters$"
+  <app-transactions-list [transactions$]="filteredTransactions$"
   (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"
-  (tagAdditionRequested)="addTagToTransaction($event.tagName, $event.transactionId)"
-  (tagRemovalRequested)="removeTagFromTransaction($event.tagName, $event.transactionId)"
   (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"
   (modeChanged)="onListModeChanged($event)"></app-transactions-list>
 </div>
