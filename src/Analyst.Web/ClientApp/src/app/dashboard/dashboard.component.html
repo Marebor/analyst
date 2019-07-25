@@ -17,8 +17,29 @@
   <app-chart [transactions$]="filteredTransactions$" (tagClicked)="onTagClicked($event)"></app-chart>
 </div>
 <div class="list-wrapper" [class.expanded]="expandList">
-  <app-transactions-list [transactions$]="filteredTransactions$"
-  (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"
-  (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"
-  (modeChanged)="onListModeChanged($event)"></app-transactions-list>
+  <div class="list-bar">
+    <div class="expand-button" (click)="toggleMode()">
+      <div class="arrow" [class.down]="expandList"></div>
+    </div>
+    <div class="tab-selector">
+      <div class="tab" [class.selected]="activeTab === 'Transakcje'" (click)="activeTab = 'Transakcje'">Transakcje</div>
+      <div class="tab" [class.selected]="activeTab === 'Filtry'" (click)="activeTab = 'Filtry'">Filtry</div>
+    </div>
+    <div class="available-tags">
+      <app-tag *ngFor="let tag of tags" [tag]="tag" [tooltipDebounceTime]="1000" 
+      (click)="addTagToSelectedTransaction(tag)" (colorChangeRequested)="changeTagColor($event, tag.name)"
+      (removalRequested)="tagRemovalRequested(tag)"></app-tag>
+    </div>
+  </div>
+  <div class="list">
+    <div [hidden]="activeTab !== 'Transakcje'">
+      <app-transactions-list [transactions$]="filteredTransactions$"
+      (transactionSelected)="selectedTransaction = $event"
+      (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"
+      (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"></app-transactions-list>
+    </div>
+    <div [hidden]="activeTab !== 'Filtry'">
+      <app-filter-manager></app-filter-manager>
+    </div>
+  </div>
 </div>

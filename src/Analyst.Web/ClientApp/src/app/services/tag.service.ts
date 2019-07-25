@@ -22,6 +22,25 @@ export class TagService {
     });
   }
 
+  createTag(name: string, color: string): Observable<Tag> {
+    return this.httpClient.post<Tag>(`${this.originUrl}api/tags`, { name, color }).pipe(
+      tap(x => {
+        this.tags.push(x);
+        this._tags$.next(this.tags);
+      })
+    );
+  }
+
+  deleteTag(name: string): Observable<void> {
+    return this.httpClient.delete<void>(`${this.originUrl}api/tags/${name}`).pipe(
+      tap(x => {
+        const index = this.tags.findIndex(t => t.name == name);
+        this.tags.splice(index, 1);
+        this._tags$.next(this.tags);
+      })
+    );
+  }
+
   changeTagColor(tagName: string, color: string): Observable<void> {
     return this.httpClient.post<void>(`${this.originUrl}api/tags/${tagName}/color`, `\"${color}\"` , { headers: { 'Content-Type': 'application/json' } }).pipe(
       tap(() => this.tags.find(t => t.name === tagName).color = color)

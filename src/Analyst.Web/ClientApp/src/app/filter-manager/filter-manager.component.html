@@ -1,0 +1,24 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col" style="width: 40%">Tagi</th>
+      <th scope="col" style="width: 60%">Wyrażenie</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let filter of filters" [class.selected]="selectedFilter === filter" 
+    (click)="filterClicked(filter)">
+      <td>
+        <div *ngIf="!dataAvailable" class="loader"></div>
+        <ng-template #tags>
+          <div *ngFor="let tagName of getTags(filter.tagNamesIfTrue)">
+            <span class="badge badge-pill" [style.background-color]="tag.color">
+              {{ tag.name }}
+            </span>
+          </div>
+        </ng-template>
+      </td>
+      <td>{{ filter.expression }}</td>
+    </tr>
+  </tbody>
+</table>

@@ -10,7 +10,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Tag } from '../models/tag.model';
 import { Filter } from '../models/filter.model';
 import moment = require('moment');
-import { take } from 'rxjs/operators';
+import { take, filter } from 'rxjs/operators';
 import { tap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
 
@@ -28,7 +28,9 @@ export class DashboardComponent implements OnInit {
   showCalendar: boolean;
   dateRange: {from: Date, to: Date };
   selectedTag: Tag;
+  selectedTransaction: Transaction;
   expandList: boolean = false;
+  activeTab: string = 'Transakcje';
 
   constructor(
     private transactionService: TransactionService, 
@@ -56,8 +58,10 @@ export class DashboardComponent implements OnInit {
     //   this.mapTags(this.mappings);
     // });
     this.refreshTransactions().subscribe();
-    this.tagService.tags$.subscribe(x => {
-      this.tags = x;
+    this.tagService.tags$.pipe(
+      tap(x => this.tags = x),
+      filter(_ => !!this.mappings)
+    ).subscribe(x => {
       this.mapTags(this.mappings);
     });
 
@@ -86,6 +90,14 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  toggleMode() {
+    if (this.expandList) {
+      this.selectedTransaction = null;
+    }
+
+    this.expandList = !this.expandList;
+  }
+
   onTagClicked(tag: Tag) {
     if (!this.selectedTag || this.selectedTag.name !== tag.name) {
       this.selectedTag = tag;
@@ -95,9 +107,19 @@ export class DashboardComponent implements OnInit {
 
     this.emitFilteredTransactions();
   }
+  
+  addTagToSelectedTransaction(tag: Tag) {
+    if (this.selectedTransaction) {
+      this.mappingService.addTransactionToTag(tag.name, this.selectedTransaction.id).subscribe();
+    }
+  }
 
-  onListModeChanged(mode: 'edit' | 'browse') {
-    this.expandList = mode === 'edit';
+  changeTagColor(color: string, tagName: string) {
+    this.tagService.changeTagColor(tagName, color).subscribe();
+  }
+
+  tagRemovalRequested(tag: Tag) {
+    this.tagService.deleteTag(tag.name).subscribe();
   }
 
   changeTransactionIgnoreValue(transaction: Transaction) {
@@ -117,10 +139,10 @@ export class DashboardComponent implements OnInit {
       const tag = this.tags.find(t => t.name === m.tag.name);
       const transaction = this.transactions.find(t => t.id === m.transaction.id);
       
-      if (transaction.tags) {
-        transaction.tags.push(tag);
-      } else {
+      if (!transaction.tags) {
         transaction.tags = [tag];
+      } else if (!transaction.tags.find(t => t.name === tag.name)) {
+        transaction.tags.push(tag);
       }
     });
   }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Analyst.Web.Controllers
 {
+    [ApiController]
     [Route("api/filters")]
     public class FiltersController : Controller
     {

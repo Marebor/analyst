@@ -17,6 +17,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { DateRangeComponent } from './date-range/date-range.component';
 import { DatePipe } from '@angular/common';
 import { MappingService } from './services/mapping.service';
+import { TagComponent } from './tag/tag.component';
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { MappingService } from './services/mapping.service';
     FileUploadComponent,
     FilterManagerComponent,
     DateRangeComponent,
+    TagComponent,
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),

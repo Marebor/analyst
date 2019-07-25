@@ -50,37 +50,37 @@ namespace Analyst.Web.Infrastructure
         public Task<IEnumerable<TOut>> Query<TOut>(System.Func<IQueryable<TagSuppression>, IQueryable<TOut>> filter)
             => Task.FromResult(filter(tagSuppressions.AsQueryable()).AsEnumerable());
 
-        public Task Save(Transaction entity)
+        public Task<Transaction> Save(Transaction entity)
             => SaveEntity(entity, transactions);
 
-        public Task Save(Tag entity)
+        public Task<Tag> Save(Tag entity)
             => SaveEntity(entity, tags);
 
-        public Task Save(Filter entity)
+        public Task<Filter> Save(Filter entity)
             => SaveEntity(entity, filters);
 
-        public Task Save(TagAssignment entity)
+        public Task<TagAssignment> Save(TagAssignment entity)
             => SaveEntity(entity, tagAssignments);
 
-        public Task Save(TagSuppression entity)
+        public Task<TagSuppression> Save(TagSuppression entity)
             => SaveEntity(entity, tagSuppressions);
 
-        public Task Save(IEnumerable<Transaction> entities)
+        public Task<IEnumerable<Transaction>> Save(IEnumerable<Transaction> entities)
             => SaveEntities(entities, transactions);
 
-        public Task Save(IEnumerable<Tag> entities)
+        public Task<IEnumerable<Tag>> Save(IEnumerable<Tag> entities)
             => SaveEntities(entities, tags);
 
-        public Task Save(IEnumerable<Filter> entities)
+        public Task<IEnumerable<Filter>> Save(IEnumerable<Filter> entities)
             => SaveEntities(entities, filters);
 
-        public Task Save(IEnumerable<TagAssignment> entities)
+        public Task<IEnumerable<TagAssignment>> Save(IEnumerable<TagAssignment> entities)
             => SaveEntities(entities, tagAssignments);
 
-        public Task Save(IEnumerable<TagSuppression> entities)
+        public Task<IEnumerable<TagSuppression>> Save(IEnumerable<TagSuppression> entities)
             => SaveEntities(entities, tagSuppressions);
 
-        private Task SaveEntity<T>(T entity, List<T> list) where T : IEntity
+        private Task<T> SaveEntity<T>(T entity, List<T> list) where T : IEntity
         {
             if (!list.Contains(entity))
             {
@@ -88,17 +88,17 @@ namespace Analyst.Web.Infrastructure
                 list.Add(entity);
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult(entity);
         }
 
-        private Task SaveEntities<T>(IEnumerable<T> entities, List<T> list) where T : IEntity
+        private Task<IEnumerable<T>> SaveEntities<T>(IEnumerable<T> entities, List<T> list) where T : IEntity
         {
             foreach (var entity in entities)
             {
                 SaveEntity(entity, list);
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult(entities);
         }
     }
 }

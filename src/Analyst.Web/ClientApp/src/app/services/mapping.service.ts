@@ -10,7 +10,7 @@ import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Mapping, MappingsChange, TransactionTagPair } from './mapping.model';
 import { Subject } from 'rxjs';
-import { tap, skip } from 'rxjs/operators';
+import { tap, skip, switchMap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
 import { first } from 'rxjs/operator/first';
 import { take } from 'rxjs/operators';
@@ -57,7 +57,7 @@ export class MappingService {
   }
 
   addTransactionToTag(tagName: string, transactionId: number): Observable<void> {
-    return this.httpClient.post<void>(`${this.originUrl}api/tags/${tagName}/transactions`, `\"${transactionId}\"` , { headers: { 'Content-Type': 'application/json' } }).pipe(
+    const observable = this.httpClient.post<void>(`${this.originUrl}api/tags/${tagName}/transactions`, `\"${transactionId}\"` , { headers: { 'Content-Type': 'application/json' } }).pipe(
       tap(() => {
         const index = this.tagSuppressions.findIndex(s => s.transactionId === transactionId && s.tagName === tagName);
 
@@ -71,6 +71,14 @@ export class MappingService {
         }
       })
     );
+
+    if (!this.tags.find(t => t.name === tagName)) {
+      return this.tagService.createTag(tagName, 'gray').pipe(
+        switchMap(_ => observable)
+      );
+    } else {
+      return observable;
+    }
   }
 
   removeTransactionFromTag(tagName: string, transactionId: number): Observable<void> {

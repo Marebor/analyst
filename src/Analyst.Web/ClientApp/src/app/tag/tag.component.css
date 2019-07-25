@@ -1,0 +1,62 @@
+.tag {
+  position: relative;
+  color: white;
+  padding: 5px;
+  font-size: 16px;
+}
+
+.tag span {
+  cursor: pointer;
+}
+
+.tag.forbidden {
+  filter: opacity(0.3);
+}
+
+.tag-tooltip {
+  z-index: 100;
+  position: absolute;
+  background-color: black;
+  left: 0;
+  top: 0;
+  transform: translateX(-100%) translateY(-5px);
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tag-tooltip::after {
+  content: " ";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+  transform: translate(5px, -5px) rotate(-90deg);
+}
+
+.change-color-button {
+  color: white;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.remove-tag-button {
+  color: orangered;
+  font-size: 12px;
+  font-style: italic;
+  font-weight:  bold;
+}
+
+.tag-color-input {
+  width: auto;
+}
+
+.allow-tag-button {
+  color: lightgreen;
+  font-size: 12px;
+  font-style: italic;
+}

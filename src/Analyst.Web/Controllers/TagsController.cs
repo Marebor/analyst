@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Analyst.Web.Controllers
 {
+    [ApiController]
     [Route("api/tags")]
     public class TagsController : Controller
     {
@@ -27,6 +28,20 @@ namespace Analyst.Web.Controllers
         public async Task<IActionResult> GetAllTags()
         {
             return Ok(await tagStore.Query(q => q));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateTag(Tag tag)
+        {
+            return Ok(await tagService.CreateTag(tag.Name, tag.Color));
+        }
+
+        [HttpDelete("{tagName}")]
+        public async Task<IActionResult> DeleteTag(string tagName)
+        {
+            await tagService.DeleteTag(tagName);
+            
+            return Ok();
         }
 
         [HttpGet("assignments")]
