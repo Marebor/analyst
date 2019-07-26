@@ -1,16 +1,44 @@
 <div class="wrapper">
-  <div class="left-bar">
-
+  <div *ngIf="!editedFilter; else edit" class="left-bar">
+    <img src="/assets/icons/add.svg" class="enabled" (click)="addingNewFilterRequested(scrollTarget)" />
+    <img src="/assets/icons/edit.svg" class="enabled" />
+    <img src="/assets/icons/delete.svg" class="enabled" />
   </div>
+  <ng-template #edit>
+    <div class="left-bar">
+      <img src="/assets/icons/accept.svg" [class.enabled]="expressionOk && editedFilter.tags.length > 0" (click)="confirmChanges()" />
+      <img src="/assets/icons/cancel.svg" class="enabled" (click)="cancelEditMode()" />
+    </div>
+  </ng-template>
   <div class="content">
     <table class="table">
-      <thead>
+      <thead #scrollTarget>
         <tr>
           <th scope="col" style="width: 20%">Tagi</th>
           <th scope="col" style="width: 80%">Wyrażenie</th>
         </tr>
       </thead>
       <tbody>
+        <tr *ngIf="addingNewFilter" (load)="onLoaded()" #addFilterRow>
+          <td>
+            <div *ngIf="editedFilter.tags.length > 0" class="tags-wrapper">
+              <app-tag *ngFor="let tag of editedFilter.tags" [tag]="tag"></app-tag>
+            </div>
+            <input type="text" class="form-control form-control-sm" autofocus placeholder="Nazwa taga" (keyup.enter)="addTagToEditedFilter(tagNameInput)" #tagNameInput />
+          </td>
+          <td>
+            <div class="input-group">
+              <input type="text" class="form-control form-control-sm" placeholder="Wyrażenie" (keyup)="expressionChanged(expressionInput)" #expressionInput>
+              <div class="input-group-append">
+                <button class="btn btn-sm" type="button" 
+                [class.btn-outline-secondary]="expressionNotChecked"
+                [class.btn-outline-success]="expressionOk"
+                [class.btn-outline-danger]="expressionWrong"
+                (click)="checkEditedFilterExpression()">{{ expressionButtonText }}</button>
+              </div>
+            </div>
+          </td>
+        </tr>
         <tr *ngFor="let filter of filters" [class.selected]="selectedFilter === filter" 
         (click)="filterClicked(filter)">
           <td>

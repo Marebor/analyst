@@ -38,6 +38,7 @@ namespace Analyst.Web
             services.AddSingleton<IStore<TagSuppression>, InMemoryStore>();
             services.AddScoped<TransactionService>();
             services.AddScoped<TagService>();
+            services.AddScoped<FilterService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

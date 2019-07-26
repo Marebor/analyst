@@ -44,39 +44,39 @@
   "filters": [
     {
       "tagNamesIfTrue": [ "Zakupy codzienne" ],
-      "Expression": "['biedronka', 'zabka', 'żabka', 'lidl', 'aldi', 'SKLEP MUSZELKA', 'FRESHMARKET'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['biedronka', 'zabka', 'żabka', 'lidl', 'aldi', 'SKLEP MUSZELKA', 'FRESHMARKET'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
       "tagNamesIfTrue": [ "Samochód" ],
-      "Expression": "['lotos', 'orlen', 'shell'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['lotos', 'orlen', 'shell'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
       "tagNamesIfTrue": [ "Lunch" ],
-      "Expression": "['pasibus', '8 stolikow', 'wolt polska'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['pasibus', '8 stolikow', 'wolt polska'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
       "tagNamesIfTrue": [ "Restauracje" ],
-      "Expression": "['tricolore', 'McDonalds', 'pyszne.pl'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['tricolore', 'McDonalds', 'pyszne.pl'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
       "tagNamesIfTrue": [ "Oszczędności" ],
-      "Expression": "['conseq'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['conseq'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
       "tagNamesIfTrue": [ "Koszty stałe" ],
-      "Expression": "['38 1020 2313 0000 3402 0435 5863', 'LOKAL 04-009-121', 'DOŁADOWANIE TELEFONU'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['38 1020 2313 0000 3402 0435 5863', 'LOKAL 04-009-121', 'DOŁADOWANIE TELEFONU'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
       "tagNamesIfTrue": [ "Odzież i buty" ],
-      "Expression": "['LPP RESERVED', 'CCC'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['LPP RESERVED', 'CCC'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
       "tagNamesIfTrue": [ "Zdrowie" ],
-      "Expression": "['apteka'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['apteka'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
       "tagNamesIfTrue": [ "Wygląd i kosmetyki" ],
-      "Expression": "['barber', 'rossman'].find(x => description.indexOf(x.toLowerCase()) >= 0)"
+      "Expression": "['barber', 'rossman'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     }
   ]
 }

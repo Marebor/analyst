@@ -8,30 +8,31 @@ import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Mapping, MappingsChange, TransactionTagPair } from './mapping.model';
+import { Mapping, TransactionTagPair } from './mapping.model';
 import { Subject } from 'rxjs';
 import { tap, skip, switchMap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
 import { first } from 'rxjs/operator/first';
 import { take } from 'rxjs/operators';
+import { Changes } from './changes';
 
 
 @Injectable()
 export class MappingService {
   private _mappings$: Subject<Mapping[]> = new Subject<Mapping[]>();
-  private _mappingsChanges$: Subject<MappingsChange> = new Subject<MappingsChange>();
+  private _mappingsChanges$: Subject<Changes<Mapping>> = new Subject<Changes<Mapping>>();
   private mappings: Mapping[] = [];
-  private transactions: Transaction[];
-  private tags: Tag[];
-  private filters: Filter[];
-  private tagAssignments: TransactionTagPair[];
-  private tagSuppressions: TransactionTagPair[];
+  private transactions: Transaction[] = [];
+  private tags: Tag[] = [];
+  private filters: Filter[] = [];
+  private tagAssignments: TransactionTagPair[] = [];
+  private tagSuppressions: TransactionTagPair[] = [];
 
   get mappings$(): Observable<Mapping[]> {
     return this._mappings$.asObservable();
   }
 
-  get mappingsChanges$(): Observable<MappingsChange> {
+  get mappingsChanges$(): Observable<Changes<Mapping>> {
     return this._mappingsChanges$;
   }
 
@@ -40,20 +41,21 @@ export class MappingService {
     forkJoin(
       this.transactionService.newTransactionsFetched$.pipe(take(1)),
       this.tagService.tags$.pipe(take(1)),
-      this.filterService.filters$.pipe(take(1)),
+      this.filterService.filtersChanged$.pipe(take(1)),
       this.getTagAssignments().pipe(take(1)),
       this.getTagsuppressions().pipe(take(1))
-    ).subscribe(([transactions, tags, filters, tagAssignments, tagSuppressions]) => {
+    ).subscribe(([transactions, tags, filtersChange, tagAssignments, tagSuppressions]) => {
       this.transactions = transactions;
       this.tags = tags;
-      this.filters = filters;
+      this.filters = filtersChange.new;
       this.tagAssignments = tagAssignments;
       this.tagSuppressions = tagSuppressions;
 
-      this.updateMappings(transactions, filters, [], tagAssignments, [], tagSuppressions, []);
+      this.updateMappings(transactions, filtersChange.new, filtersChange.deleted, tagAssignments, [], tagSuppressions, []);
     });
 
     this.transactionService.newTransactionsFetched$.pipe(skip(1)).subscribe(x => this.updateMappings(x, [], [], [], [], [], []));
+    this.filterService.filtersChanged$.pipe(skip(1)).subscribe(x => this.updateMappings([], x.new, x.deleted, [], [], [], []));
   }
 
   addTransactionToTag(tagName: string, transactionId: number): Observable<void> {
@@ -106,6 +108,10 @@ export class MappingService {
     return this.httpClient.get<TransactionTagPair[]>(`${this.originUrl}api/tags/suppressions`);
   }
 
+  private handleFiltersChange(changes: Changes<Filter>) {
+    changes
+  }
+
   private updateMappings(newTransactions: Transaction[], newFilters: Filter[], deletedFilters: Filter[],
     newAssignments: TransactionTagPair[], deletedAssignments: TransactionTagPair[], 
     newSuppressions: TransactionTagPair[], deletedSuppressions: TransactionTagPair[]) {
@@ -138,7 +144,7 @@ export class MappingService {
       .concat(deletedSuppressionsBasedMappings)
       .concat(deletedAssignmentsBasedMappings);
     
-    const changes = { newMappings, deletedMappings };
+    const changes = { new: newMappings, deleted: deletedMappings };
     this._mappingsChanges$.next(changes);
     this.applyMappingChanges(changes);
   }
@@ -213,14 +219,14 @@ export class MappingService {
     return deletedMappings;
   }
 
-  private applyMappingChanges(changes: MappingsChange) {
-    changes.deletedMappings.forEach(dm => {
+  private applyMappingChanges(changes: Changes<Mapping>) {
+    changes.deleted.forEach(dm => {
       const index = this.mappings.findIndex(m => m.isEqual(dm));
 
       this.mappings.splice(index, 1);
     });
 
-    this.mappings = this.mappings.concat(changes.newMappings)
+    this.mappings = this.mappings.concat(changes.new)
     this._mappings$.next(this.mappings);
   }
 }

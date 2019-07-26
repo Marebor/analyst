@@ -8,7 +8,17 @@
 .left-bar {
   width: 60px;
   height: 100%;
-  display: inline-block;
+  display: flex;
+  flex-flow: column;
+  padding-top: 50px;
+}
+
+.left-bar img {
+  margin-bottom: 25px;
+}
+
+.left-bar img.enabled {
+  cursor: pointer;
 }
 
 .content {
@@ -28,4 +38,15 @@ table {
 td {
   vertical-align: middle; 
   position: relative;
+}
+
+.tags-wrapper {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+}
+
+.input-group-append button {
+  width: 100px;
 }

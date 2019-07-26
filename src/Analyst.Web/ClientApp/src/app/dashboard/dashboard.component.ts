@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs/Subject';
-import { Mapping, MappingsChange } from './../services/mapping.model';
+import { Mapping } from './../services/mapping.model';
 import { MappingService } from './../services/mapping.service';
 import { FilterService } from './../services/filter.service';
 import { TagService } from './../services/tag.service';
@@ -13,6 +13,7 @@ import moment = require('moment');
 import { take, filter } from 'rxjs/operators';
 import { tap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
+import { Changes } from '../services/changes';
 
 @Component({
   selector: 'app-dashboard',
@@ -149,16 +150,16 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private handleMappingChange(changes: MappingsChange) {
+  private handleMappingChange(changes: Changes<Mapping>) {
     if (!this.mappings) {
-      this.mappings = changes.newMappings;
+      this.mappings = changes.new;
     } else {
-      this.mappings.push(...changes.newMappings);
+      this.mappings.push(...changes.new);
     }
 
-    this.mapTags(changes.newMappings);
+    this.mapTags(changes.new);
 
-    changes.deletedMappings.forEach(m => {
+    changes.deleted.forEach(m => {
       const transaction = this.transactions.find(t => t.id === m.transaction.id);
       const index = transaction.tags.findIndex(t => t.name === m.tag.name);
       transaction.tags.splice(index, 1);
