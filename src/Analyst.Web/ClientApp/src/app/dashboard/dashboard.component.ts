@@ -98,12 +98,14 @@ export class DashboardComponent implements OnInit {
     this.expandList = !this.expandList;
   }
 
-  onTagClicked(tag: Tag) {
+  tagClickedOnChart(tag: Tag) {
     if (!this.selectedTag || this.selectedTag.name !== tag.name) {
       this.selectedTag = tag;
     } else {
       this.selectedTag = null;
     }
+
+    this.activeTab = 'Transakcje';
 
     this.emitFilteredTransactions();
   }

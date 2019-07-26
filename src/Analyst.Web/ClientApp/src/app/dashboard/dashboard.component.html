@@ -14,7 +14,7 @@
   </div>
 </div>
 <div class="chart-wrapper">
-  <app-chart [transactions$]="filteredTransactions$" (tagClicked)="onTagClicked($event)"></app-chart>
+  <app-chart [transactions$]="filteredTransactions$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
 </div>
 <div class="list-wrapper" [class.expanded]="expandList">
   <div class="list-bar">
@@ -32,13 +32,13 @@
     </div>
   </div>
   <div class="list">
-    <div [hidden]="activeTab !== 'Transakcje'">
+    <div class="list-template" [hidden]="activeTab !== 'Transakcje'">
       <app-transactions-list [transactions$]="filteredTransactions$"
       (transactionSelected)="selectedTransaction = $event"
       (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"
       (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"></app-transactions-list>
     </div>
-    <div [hidden]="activeTab !== 'Filtry'">
+    <div class="list-template" [hidden]="activeTab !== 'Filtry'">
       <app-filter-manager></app-filter-manager>
     </div>
   </div>

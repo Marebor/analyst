@@ -157,3 +157,7 @@
 .list .selected {
   z-index: 50;
 }
+
+.list-template {
+  height: 100%;
+}

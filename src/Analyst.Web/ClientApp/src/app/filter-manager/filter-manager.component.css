@@ -1,3 +1,24 @@
+.wrapper {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+}
+
+.left-bar {
+  width: 60px;
+  height: 100%;
+  display: inline-block;
+}
+
+.content {
+  height: 100%;
+  width: calc(100% - 60px);
+  display: inline-block;
+  border-left: 1px solid lightgray;
+  overflow-y: auto;
+}
+
 table {
   table-layout: fixed;
   word-wrap: break-word;

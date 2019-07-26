@@ -25,7 +25,7 @@ export class FilterManagerComponent implements OnInit {
     this.tagService.tags$.subscribe(x => this.tags = x);
   }
 
-  getTags(names: string[]): Tag[] {
-    return names.map(name => this.tags.find(t => t.name === name));
+  getTags(filter: Filter): Tag[] {
+    return filter.tagNamesIfTrue.map(name => this.tags.find(t => t.name === name));
   }
 }
