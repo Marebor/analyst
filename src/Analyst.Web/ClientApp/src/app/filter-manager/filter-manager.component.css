@@ -21,6 +21,44 @@
   cursor: pointer;
 }
 
+.button-wrapper {
+  position: relative;
+  display: flex;
+  flex-flow: column;
+}
+
+.delete-tooltip {
+  z-index: 100;
+  position: absolute;
+  background-color: black;
+  color: white;
+  padding: 5px 5px 5px 20px;
+  right: 15px;
+  top: -5px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translateX(101%) translateY(-3px);
+}
+
+.delete-tooltip::after {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  border-width: 5px;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+  left: -15px;
+  transform: translate(5px, -5px) rotate(90deg);
+}
+
+.tooltip-delete-button {
+  color: orangered;
+  font-size: 12px;
+  font-style: italic;
+  font-weight:  bold;
+}
+
 .content {
   height: 100%;
   width: calc(100% - 60px);
@@ -35,9 +73,17 @@ table {
   font-size: 12px;
 }
 
+tr.selected {
+  background-color: lightblue;
+}
+
 td {
   vertical-align: middle; 
   position: relative;
+}
+
+.expression {
+  font-family: 'Consolas';
 }
 
 .tags-wrapper {

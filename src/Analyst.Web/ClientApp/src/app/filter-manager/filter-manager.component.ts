@@ -2,8 +2,9 @@ import { ChangesHandler } from './../services/changes';
 import { TagService } from './../services/tag.service';
 import { Tag } from './../models/tag.model';
 import { FilterService } from './../services/filter.service';
-import { Component, OnInit, ViewChild, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter, Input } from '@angular/core';
 import { Filter } from '../models/filter.model';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-filter-manager',
@@ -11,12 +12,16 @@ import { Filter } from '../models/filter.model';
   styleUrls: ['./filter-manager.component.css']
 })
 export class FilterManagerComponent implements OnInit, AfterViewChecked {
+  @Input() tagSelected$: Observable<Tag>;
   @ViewChild('addFilterRow') addFilterRow: HTMLTableRowElement;
   scrollTarget: HTMLElement;
   scrolled: boolean;
   filters: Filter[] = [];
   tags: Tag[] = [];
+  selectedFilter: Filter;
+  selectedFilterElement: HTMLElement;
   addingNewFilter: boolean;
+  showDeleteFilterTooltip: boolean;
   expressionButtonText: string;
   editedFilter: { id: number, tags: Tag[], expression: string };
   expressionNotChecked: boolean;
@@ -33,6 +38,11 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
   ngOnInit() {
     this.filterService.filtersChanged$.subscribe(x => ChangesHandler.handle(x, this.filters, (a, b) => a.id === b.id));
     this.tagService.tags$.subscribe(x => this.tags = x);
+    this.tagSelected$.subscribe(tag => {
+      if (this.editedFilter && !this.editedFilter.tags.find(t => t.name === tag.name)) {
+        this.editedFilter.tags.push(tag);
+      }
+    });
   }
 
   ngAfterViewChecked() {
@@ -55,6 +65,31 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     }
   }
 
+  editFilterRequested() {
+    if (!this.selectedFilter) {
+      return;
+    }
+
+    this.editedFilter = { 
+      id: this.selectedFilter.id, 
+      tags: this.selectedFilter.tagNamesIfTrue.map(x => this.tags.find(t => t.name === x)),
+      expression: this.selectedFilter.expression 
+    };
+    this.addingNewFilter = false;
+    this.selectedFilterElement.scrollIntoView();
+  }
+
+  deleteFilterRequested() {
+    if (this.selectedFilter) {
+      this.showDeleteFilterTooltip = true;
+    }
+  }
+
+  deleteSelectedFilter() {
+    this.filterService.deleteFilter(this.selectedFilter).subscribe();
+    this.showDeleteFilterTooltip = false;
+  }
+
   addTagToEditedFilter(tagNameInput: HTMLInputElement) {
     const tag = this.tags.find(x => x.name === tagNameInput.value);
 
@@ -67,6 +102,24 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     }
 
     tagNameInput.value = null;
+  }
+
+  filterClicked(filter: Filter, element: HTMLElement) {
+    if (this.editedFilter) {
+      return;
+    } else if (this.selectedFilter === filter) {
+      this.selectedFilter = null;
+    } else {
+      this.selectedFilter = filter;
+      this.selectedFilterElement = element;
+    }
+  }
+
+  tagRemovalRequested(tag: Tag) {
+    if (this.editedFilter) {
+      const index = this.editedFilter.tags.findIndex(t => t.name === tag.name);
+      this.editedFilter.tags.splice(index, 1);
+    }
   }
 
   checkEditedFilterExpression() {
@@ -106,10 +159,13 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     } else {
       this.filterService.editFilter(this.editedFilter.id, this.editedFilter.tags, this.editedFilter.expression).subscribe(() => this.cancelEditMode());
     }
+
+    this.selectedFilter = null;
   }
 
   cancelEditMode() {
     this.editedFilter = null;
     this.addingNewFilter = null;
+    this.selectedFilter = null;
   }
 }

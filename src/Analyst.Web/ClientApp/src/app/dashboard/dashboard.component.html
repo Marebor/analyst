@@ -27,19 +27,19 @@
     </div>
     <div class="available-tags">
       <app-tag *ngFor="let tag of tags" [tag]="tag" [tooltipDebounceTime]="1000" 
-      (click)="addTagToSelectedTransaction(tag)" (colorChangeRequested)="changeTagColor($event, tag.name)"
+      (click)="tagClicked(tag)" (colorChangeRequested)="changeTagColor($event, tag.name)"
       (removalRequested)="tagRemovalRequested(tag)"></app-tag>
     </div>
   </div>
   <div class="list">
     <div class="list-template" [hidden]="activeTab !== 'Transakcje'">
-      <app-transactions-list [transactions$]="filteredTransactions$"
-      (transactionSelected)="selectedTransaction = $event"
-      (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"
-      (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"></app-transactions-list>
+      <app-transactions-list 
+      [transactions$]="filteredTransactions$"
+      [tagSelected$]="tagSelected_transactionsList$"
+      (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"></app-transactions-list>
     </div>
     <div class="list-template" [hidden]="activeTab !== 'Filtry'">
-      <app-filter-manager></app-filter-manager>
+      <app-filter-manager [tagSelected$]="tagSelected_filterManager$"></app-filter-manager>
     </div>
   </div>
 </div>

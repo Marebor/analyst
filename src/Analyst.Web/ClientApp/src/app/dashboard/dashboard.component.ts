@@ -23,6 +23,8 @@ import { Changes } from '../services/changes';
 export class DashboardComponent implements OnInit {
 
   filteredTransactions$: Subject<Transaction[]> = new Subject<Transaction[]>();
+  tagSelected_transactionsList$: Subject<Tag> = new Subject<Tag>();
+  tagSelected_filterManager$: Subject<Tag> = new Subject<Tag>();
   mappings: Mapping[];
   transactions: Transaction[];
   tags: Tag[];
@@ -111,9 +113,11 @@ export class DashboardComponent implements OnInit {
     this.emitFilteredTransactions();
   }
   
-  addTagToSelectedTransaction(tag: Tag) {
-    if (this.selectedTransaction) {
-      this.mappingService.addTransactionToTag(tag.name, this.selectedTransaction.id).subscribe();
+  tagClicked(tag: Tag) {
+    if (this.activeTab === 'Transakcje') {
+      this.tagSelected_transactionsList$.next(tag);
+    } else if (this.activeTab === 'Filtry') {
+      this.tagSelected_filterManager$.next(tag);
     }
   }
 

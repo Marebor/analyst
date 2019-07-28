@@ -14,9 +14,8 @@ import { TagService } from '../services/tag.service';
 })
 export class TransactionsListComponent implements OnInit {
   @Input() transactions$: Observable<Transaction[]>;
-  @Input() tags: Tag[];
+  @Input() tagSelected$: Observable<Tag>;
   @Output() transactionIgnoreValueChanged: EventEmitter<Transaction> = new EventEmitter<Transaction>();
-  @Output() transactionSelected: EventEmitter<Transaction> = new EventEmitter<Transaction>();
   transactions: Transaction[];
   selectedTransaction: Transaction;
 
@@ -25,12 +24,15 @@ export class TransactionsListComponent implements OnInit {
 
   ngOnInit() {
     this.transactions$.subscribe(x => this.transactions = x);
+    this.tagSelected$.subscribe(tag => {
+      if (this.selectedTransaction && !this.selectedTransaction.tags.find(t => t.name === tag.name)) {
+        this.mappingService.addTransactionToTag(tag.name, this.selectedTransaction.id).subscribe();
+      }
+    });
   }
 
   transactionClicked(transaction: Transaction) {
     this.selectedTransaction = this.selectedTransaction === transaction ? null : transaction;
-
-    this.transactionSelected.emit(this.selectedTransaction);
   }
 
   removeTagFromTransaction(tagName: string, transactionId: number) {

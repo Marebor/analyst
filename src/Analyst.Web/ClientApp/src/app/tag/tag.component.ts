@@ -15,6 +15,7 @@ export class TagComponent {
   @Input() tag: Tag
   @Input() forbidden: boolean;
   @Input() tooltipDebounceTime: number = 0;
+  @Input() tooltipSide: string = 'left';
   @Output() clicked: EventEmitter<void> = new EventEmitter<void>();
   @Output() removalRequested: EventEmitter<void> = new EventEmitter<void>();
   @ViewChild('tagColorInput') tagColorInput: HTMLInputElement;

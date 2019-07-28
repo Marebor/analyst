@@ -19,11 +19,6 @@ export class Mapping {
   }
 }
 
-export interface MappingsChange {
-  newMappings: Mapping[],
-  deletedMappings: Mapping[],
-}
-
 export interface TransactionTagPair {
   transactionId: number,
   tagName: string,

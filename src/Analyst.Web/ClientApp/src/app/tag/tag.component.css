@@ -17,25 +17,41 @@
   z-index: 100;
   position: absolute;
   background-color: black;
-  left: 0;
   top: 0;
-  transform: translateX(-100%) translateY(-5px);
   padding: 5px;
   border-radius: 5px;
   font-size: 12px;
   white-space: nowrap;
 }
 
+.tag-tooltip.left {
+  left: 0;
+  transform: translateX(-100%) translateY(-3px);
+}
+
+.tag-tooltip.right {
+  right: 0;
+  transform: translateX(101%) translateY(-3px);
+}
+
 .tag-tooltip::after {
   content: " ";
   position: absolute;
-  left: 100%;
   top: 50%;
-  margin-left: -5px;
+  /* margin-left: -5px; */
   border-width: 5px;
   border-style: solid;
   border-color: black transparent transparent transparent;
-  transform: translate(5px, -5px) rotate(-90deg);
+}
+
+.tag-tooltip.left::after {
+  right: 0;
+  transform: translate(9px, -5px) rotate(-90deg);
+}
+
+.tag-tooltip.right::after {
+  left: -15px;
+  transform: translate(5px, -5px) rotate(90deg);
 }
 
 .change-color-button {

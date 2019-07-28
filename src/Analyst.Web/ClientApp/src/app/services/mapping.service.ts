@@ -197,7 +197,7 @@ export class MappingService {
       this.filters.splice(filterIndex, 1);
 
       let mappingIndex: number = null;
-      while (mappingIndex = mappings.findIndex(m => m.filter.id === df.id)) {
+      while ((mappingIndex = mappings.findIndex(m => m.filter.id === df.id)) !== -1) {
         deletedMappings.push(...mappings.splice(mappingIndex, 1));
       }
     });
