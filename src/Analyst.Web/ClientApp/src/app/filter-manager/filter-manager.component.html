@@ -1,9 +1,9 @@
 <div class="wrapper">
   <div *ngIf="!editedFilter; else edit" class="left-bar">
     <img src="/assets/icons/add.svg" class="enabled" (click)="addingNewFilterRequested(scrollTarget)" />
-    <img *ngIf="selectedFilter" src="/assets/icons/edit.svg" class="enabled" (click)="editFilterRequested()" />
-    <div class="button-wrapper" (mouseleave)="showDeleteFilterTooltip = false">
-      <img *ngIf="selectedFilter" src="/assets/icons/delete.svg" class="enabled" (click)="deleteFilterRequested()" />
+    <img src="/assets/icons/edit.svg" class="enabled" [class.d-none]="!selectedFilter" (click)="editFilterRequested()" />
+    <div class="button-wrapper" [class.d-none]="!selectedFilter" (mouseleave)="showDeleteFilterTooltip = false">
+      <img src="/assets/icons/delete.svg" class="enabled" (click)="deleteFilterRequested()" />
       <div *ngIf="showDeleteFilterTooltip" class="delete-tooltip">
         Czy na pewno usunąć wybrany filtr?
         <button class="btn btn-link tooltip-delete-button" (click)="deleteSelectedFilter()">Usuń</button>

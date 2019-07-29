@@ -1,4 +1,4 @@
-<div *ngIf="displayChart" class="wrapper">
+<div *ngIf="displayChart; else noData" class="wrapper">
   <div class="canvas-wrapper">
     <canvas baseChart
       [data]="pieChartData"
@@ -25,3 +25,8 @@
     <div class="amount total">{{ total | number:'1.2-2' }} zł</div>
   </div>
 </div>
+<ng-template #noData>
+  <div class="no-data-info">
+    <p>Brak danych do wyświetlenia</p>
+  </div>
+</ng-template>

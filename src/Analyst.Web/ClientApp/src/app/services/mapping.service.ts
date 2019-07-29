@@ -14,12 +14,11 @@ import { tap, skip, switchMap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
 import { first } from 'rxjs/operator/first';
 import { take } from 'rxjs/operators';
-import { Changes } from './changes';
+import { Changes, ChangesHandler } from './changes';
 
 
 @Injectable()
 export class MappingService {
-  private _mappings$: Subject<Mapping[]> = new Subject<Mapping[]>();
   private _mappingsChanges$: Subject<Changes<Mapping>> = new Subject<Changes<Mapping>>();
   private mappings: Mapping[] = [];
   private transactions: Transaction[] = [];
@@ -27,10 +26,6 @@ export class MappingService {
   private filters: Filter[] = [];
   private tagAssignments: TransactionTagPair[] = [];
   private tagSuppressions: TransactionTagPair[] = [];
-
-  get mappings$(): Observable<Mapping[]> {
-    return this._mappings$.asObservable();
-  }
 
   get mappingsChanges$(): Observable<Changes<Mapping>> {
     return this._mappingsChanges$;
@@ -47,15 +42,18 @@ export class MappingService {
     ).subscribe(([transactions, tags, filtersChange, tagAssignments, tagSuppressions]) => {
       this.transactions = transactions;
       this.tags = tags;
-      this.filters = filtersChange.new;
       this.tagAssignments = tagAssignments;
       this.tagSuppressions = tagSuppressions;
 
+      ChangesHandler.handle(filtersChange, this.filters, (a, b) => a.id === b.id);
       this.updateMappings(transactions, filtersChange.new, filtersChange.deleted, tagAssignments, [], tagSuppressions, []);
     });
 
     this.transactionService.newTransactionsFetched$.pipe(skip(1)).subscribe(x => this.updateMappings(x, [], [], [], [], [], []));
-    this.filterService.filtersChanged$.pipe(skip(1)).subscribe(x => this.updateMappings([], x.new, x.deleted, [], [], [], []));
+    this.filterService.filtersChanged$.pipe(skip(1)).subscribe(x => {
+      ChangesHandler.handle(x, this.filters, (a, b) => a.id === b.id);
+      this.updateMappings([], x.new, x.deleted, [], [], [], []);
+    });
   }
 
   addTransactionToTag(tagName: string, transactionId: number): Observable<void> {
@@ -145,7 +143,6 @@ export class MappingService {
       .concat(deletedAssignmentsBasedMappings);
     
     const changes = { new: newMappings, deleted: deletedMappings };
-    this._mappingsChanges$.next(changes);
     this.applyMappingChanges(changes);
   }
 
@@ -193,13 +190,7 @@ export class MappingService {
     const deletedMappings: Mapping[] = [];
 
     deletedFilters.forEach(df => {
-      const filterIndex = this.filters.findIndex(f => f.id === df.id)
-      this.filters.splice(filterIndex, 1);
-
-      let mappingIndex: number = null;
-      while ((mappingIndex = mappings.findIndex(m => m.filter.id === df.id)) !== -1) {
-        deletedMappings.push(...mappings.splice(mappingIndex, 1));
-      }
+      deletedMappings.push(...mappings.filter(m => m.filter.id === df.id));
     });
 
     return deletedMappings;
@@ -209,10 +200,10 @@ export class MappingService {
     const deletedMappings: Mapping[] = [];
     
     tagSuppressions.forEach(s => {
-      const index = mappings.findIndex(m => m.transaction.id === s.transactionId && m.tag.name === s.tagName);
+      const mapping = mappings.find(m => m.transaction.id === s.transactionId && m.tag.name === s.tagName && !m.filter);
 
-      if (index >= 0) {
-        deletedMappings.push(...mappings.splice(index, 1));
+      if (mapping) {
+        deletedMappings.push(mapping);
       }
     });
 
@@ -223,10 +214,12 @@ export class MappingService {
     changes.deleted.forEach(dm => {
       const index = this.mappings.findIndex(m => m.isEqual(dm));
 
-      this.mappings.splice(index, 1);
+      if (index >= 0) {
+        this.mappings.splice(index, 1);
+      }
     });
 
-    this.mappings = this.mappings.concat(changes.new)
-    this._mappings$.next(this.mappings);
+    this.mappings.push(...changes.new);
+    this._mappingsChanges$.next(changes);
   }
 }

@@ -2,7 +2,7 @@ import { ChangesHandler } from './../services/changes';
 import { TagService } from './../services/tag.service';
 import { Tag } from './../models/tag.model';
 import { FilterService } from './../services/filter.service';
-import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter, Input, HostListener } from '@angular/core';
 import { Filter } from '../models/filter.model';
 import { Observable } from 'rxjs';
 
@@ -27,6 +27,7 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
   expressionNotChecked: boolean;
   expressionOk: boolean;
   expressionWrong: boolean;
+  private clickedInsideComponent: boolean;
 
   get dataAvailable(): boolean {
     return !!this.filters && !!this.tags;

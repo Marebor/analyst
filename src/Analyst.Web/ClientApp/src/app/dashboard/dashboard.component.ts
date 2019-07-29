@@ -1,3 +1,4 @@
+import { ChangesHandler } from './../services/changes';
 import { Subject } from 'rxjs/Subject';
 import { Mapping } from './../services/mapping.model';
 import { MappingService } from './../services/mapping.service';
@@ -25,7 +26,7 @@ export class DashboardComponent implements OnInit {
   filteredTransactions$: Subject<Transaction[]> = new Subject<Transaction[]>();
   tagSelected_transactionsList$: Subject<Tag> = new Subject<Tag>();
   tagSelected_filterManager$: Subject<Tag> = new Subject<Tag>();
-  mappings: Mapping[];
+  mappings: Mapping[] = [];
   transactions: Transaction[];
   tags: Tag[];
   showCalendar: boolean;
@@ -68,7 +69,10 @@ export class DashboardComponent implements OnInit {
       this.mapTags(this.mappings);
     });
 
-    this.mappingService.mappingsChanges$.subscribe(c => this.handleMappingChange(c))
+    this.mappingService.mappingsChanges$.subscribe(c => {
+      ChangesHandler.handle(c, this.mappings, (a, b) => a.isEqual(b));
+      this.handleMappingChange(c);
+    })
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
@@ -142,11 +146,13 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    mappings.filter(m => this.transactions.find(t => t.id === m.transaction.id)).forEach(m => {
+    mappings.forEach(m => {
       const tag = this.tags.find(t => t.name === m.tag.name);
       const transaction = this.transactions.find(t => t.id === m.transaction.id);
       
-      if (!transaction.tags) {
+      if (!tag || !transaction) {
+        return;
+      } else  if (!transaction.tags) {
         transaction.tags = [tag];
       } else if (!transaction.tags.find(t => t.name === tag.name)) {
         transaction.tags.push(tag);
@@ -155,18 +161,18 @@ export class DashboardComponent implements OnInit {
   }
 
   private handleMappingChange(changes: Changes<Mapping>) {
-    if (!this.mappings) {
-      this.mappings = changes.new;
-    } else {
-      this.mappings.push(...changes.new);
-    }
-
     this.mapTags(changes.new);
 
     changes.deleted.forEach(m => {
       const transaction = this.transactions.find(t => t.id === m.transaction.id);
-      const index = transaction.tags.findIndex(t => t.name === m.tag.name);
-      transaction.tags.splice(index, 1);
+      
+      if (transaction) {
+        const index = transaction.tags.findIndex(t => t.name === m.tag.name);
+
+        if (index >= 0) {
+          transaction.tags.splice(index, 1);
+        }
+      }
     });
     
     if (this.transactions) {
