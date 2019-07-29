@@ -21,7 +21,7 @@
           <input type="text" class="form-control form-control-sm tag-input" (keyup.enter)="addNewTagTotransaction(tagNameInput, transaction.id)" #tagNameInput/>
         </div>
         <div class="tags">
-          <app-tag *ngFor="let tag of transaction.tags" [tag]="tag" [forbidden]="isTagForbidden(tag, transaction)"
+          <app-tag *ngFor="let tag of transaction.tags" [tag]="tag" [forbidden]="isTagForbidden(tag, transaction)" [allowChangeColor]="true" [allowDelete]="true"
           (colorChangeRequested)="changeTagColor($event, tag.name)" (removalRequested)="removeTagFromTransaction(tag.name, transaction.id)"></app-tag>
         </div>
       </td>

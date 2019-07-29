@@ -3,16 +3,16 @@
     [style.background-color]="tag.color" (mouseenter)="mouseEntered()">
     {{ tag.name }}
   </span>
-  <div *ngIf="showTooltip" class="tag-tooltip" 
-  [class.left]="tooltipSide === 'left'" [class.right]="tooltipSide === 'right'">
+  <div *ngIf="showTooltip" class="tag-tooltip" [class.left]="tooltipSide === 'left'" [class.right]="tooltipSide === 'right'"
+  (click)="$event.stopPropagation()">
     <div *ngIf="forbidden; else notForbidden">
       Tag <i>{{ tag.name }}</i> spełnia warunki filtru, ale został usunięty 
       <button type="button" class="btn btn-link allow-tag-button" (click)="restoreRequested()">Przywróć</button>
     </div>
     <ng-template #notForbidden>
       <input *ngIf="changingTagColor" type="text" class="form-control form-control-sm tag-color-input" autofocus (keyup.enter)="onColorChangeRequested(tagColorInput)" #tagColorInput />
-      <button *ngIf="!changingTagColor" class="btn btn-link change-color-button" (click)="changeColorClicked()">Zmień kolor</button>
-      <button *ngIf="!changingTagColor" class="btn btn-link remove-tag-button" (click)="onRemovalRequested()">Usuń</button>
+      <button *ngIf="!changingTagColor && allowChangeColor" class="btn btn-link change-color-button" (click)="changeColorClicked()">Zmień kolor</button>
+      <button *ngIf="!changingTagColor && allowDelete" class="btn btn-link remove-tag-button" (click)="onRemovalRequested()">Usuń</button>
     </ng-template>
   </div>
 </span>

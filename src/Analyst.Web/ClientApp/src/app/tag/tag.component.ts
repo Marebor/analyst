@@ -16,7 +16,8 @@ export class TagComponent {
   @Input() forbidden: boolean;
   @Input() tooltipDebounceTime: number = 0;
   @Input() tooltipSide: string = 'left';
-  @Output() clicked: EventEmitter<void> = new EventEmitter<void>();
+  @Input() allowDelete: boolean;
+  @Input() allowChangeColor: boolean;
   @Output() removalRequested: EventEmitter<void> = new EventEmitter<void>();
   @ViewChild('tagColorInput') tagColorInput: HTMLInputElement;
   showTooltip: boolean;
@@ -27,22 +28,21 @@ export class TagComponent {
   constructor(private tagService: TagService) {}
 
   mouseEntered() {
-    this.tooltipRequested = true;
-    setTimeout(() => {
-      if (this.tooltipRequested) {
-        this.showTooltip = true;
-      }
-    }, this.tooltipDebounceTime);
+    if (this.allowChangeColor || this.allowDelete) {
+      this.tooltipRequested = true;
+      
+      setTimeout(() => {
+        if (this.tooltipRequested) {
+          this.showTooltip = true;
+        }
+      }, this.tooltipDebounceTime);
+    }
   }
 
   mouseLeft() {
     this.tooltipRequested = false;
     this.showTooltip = false;
     this.changingTagColor = false;
-  }
-
-  onClick() {
-    this.clicked.emit();
   }
 
   restoreRequested() {

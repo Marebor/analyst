@@ -26,7 +26,7 @@
       <div class="tab" [class.selected]="activeTab === 'Filtry'" (click)="activeTab = 'Filtry'">Filtry</div>
     </div>
     <div class="available-tags">
-      <app-tag *ngFor="let tag of tags" [tag]="tag" [tooltipDebounceTime]="1000" 
+      <app-tag *ngFor="let tag of tags" [tag]="tag" [tooltipDebounceTime]="1000" [allowChangeColor]="true" [allowDelete]="true"
       (click)="tagClicked(tag)" (colorChangeRequested)="changeTagColor($event, tag.name)"
       (removalRequested)="tagRemovalRequested(tag)"></app-tag>
     </div>

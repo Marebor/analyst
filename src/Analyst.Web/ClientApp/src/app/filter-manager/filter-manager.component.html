@@ -35,7 +35,7 @@
               <div *ngIf="!dataAvailable; else tags" class="loader"></div>
               <ng-template #tags>
                 <div *ngFor="let tag of getTags(filter)">
-                  <app-tag [tag]="tag" [tooltipSide]="'right'"></app-tag>
+                  <app-tag [tag]="tag" [allowChangeColor]="true" [tooltipSide]="'right'"></app-tag>
                 </div>
               </ng-template>
             </td>
@@ -54,7 +54,7 @@
   <td>
     <div *ngIf="editedFilter.tags.length > 0" class="tags-wrapper">
       <app-tag *ngFor="let tag of editedFilter.tags" 
-      [tag]="tag" [tooltipSide]="'right'"
+      [tag]="tag" [tooltipSide]="'right'" [allowChangeColor]="true" [allowDelete]="true"
       (removalRequested)="tagRemovalRequested(tag)"></app-tag>
     </div>
     <input type="text" class="form-control form-control-sm" autofocus placeholder="Nazwa taga" (keyup.enter)="addTagToEditedFilter(tagNameInput)" #tagNameInput />
