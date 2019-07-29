@@ -14,7 +14,7 @@
     <div *ngFor="let item of data; let i = index" class="tag-summary">
       <div class="amount">{{ pieChartData[i] | number:'1.2-2' }} zł</div>
       <app-tag *ngIf="i < data.length - 1 || data.length === 1; else othersSummary" 
-      [tag]="item.tag" [allowChangeColor]="true"
+      [tag]="item.tag" [allowChangeColor]="true" [tooltipSide]="'right'"
       (click)="onTagClicked(item.tag)"></app-tag>
       <ng-template #othersSummary>
         <span class="others">Inne</span>
