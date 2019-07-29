@@ -1,5 +1,5 @@
 import { tap } from 'rxjs/operators/tap';
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, Inject, Output } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
@@ -10,9 +10,14 @@ import { Subject } from 'rxjs/Subject';
 export class TagService {
   private tags: Tag[];
   private _tags$: Subject<Tag[]> = new Subject<Tag[]>();
+  private _tagColorChanged$: Subject<Tag> = new Subject<Tag>();
 
   get tags$(): Observable<Tag[]> {
     return this._tags$.asObservable();
+  }
+
+  get tagColorChanged$(): Observable<Tag> {
+    return this._tagColorChanged$.asObservable();
   }
 
   constructor(@Inject('BASE_URL') private originUrl: string, private httpClient: HttpClient) {
@@ -43,7 +48,11 @@ export class TagService {
 
   changeTagColor(tagName: string, color: string): Observable<void> {
     return this.httpClient.post<void>(`${this.originUrl}api/tags/${tagName}/color`, `\"${color}\"` , { headers: { 'Content-Type': 'application/json' } }).pipe(
-      tap(() => this.tags.find(t => t.name === tagName).color = color)
+      tap(() => {
+        const tag = this.tags.find(t => t.name === tagName)
+        tag.color = color;
+        this._tagColorChanged$.next(tag);
+      })
     );
   }
 }
