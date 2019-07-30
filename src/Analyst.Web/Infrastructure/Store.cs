@@ -15,8 +15,6 @@ namespace Analyst.Web.Infrastructure
         public Store(AnalystDbContext dbContext)
         {
             this.dbContext = dbContext;
-            Seeder.SeedStore(this);
-            dbContext.SaveChanges();
         }
 
         public Task Delete(Transaction entity)
@@ -79,14 +77,17 @@ namespace Analyst.Web.Infrastructure
         public Task<IEnumerable<TagSuppression>> Save(IEnumerable<TagSuppression> entities)
             => SaveEntities(entities, dbContext.TagSuppressions);
 
-        private async Task<T> SaveEntity<T>(T entity, DbSet<T> set) where T : class
+        private async Task<T> SaveEntity<T>(T entity, DbSet<T> set, bool saveChanges = true) where T : class
         {
             if (!set.Any(x => x.Equals(entity)))
             {
-                set.Add(entity);
+                entity = set.Add(entity).Entity;
             }
 
-            await dbContext.SaveChangesAsync();
+            if (saveChanges)
+            {
+                await dbContext.SaveChangesAsync();
+            }
 
             return entity;
         }
@@ -97,8 +98,10 @@ namespace Analyst.Web.Infrastructure
 
             foreach (var entity in entities)
             {
-                returnedEntities.Add(await SaveEntity(entity, set));
+                returnedEntities.Add(await SaveEntity(entity, set, false));
             }
+
+            await dbContext.SaveChangesAsync();
 
             return returnedEntities;
         }

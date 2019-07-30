@@ -10,7 +10,7 @@ import { TransactionService } from '../services/transaction.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Tag } from '../models/tag.model';
 import { Filter } from '../models/filter.model';
-import moment = require('moment');
+import * as moment from 'moment'
 import { take, filter } from 'rxjs/operators';
 import { tap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';

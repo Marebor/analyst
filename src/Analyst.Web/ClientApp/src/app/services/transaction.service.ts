@@ -4,8 +4,8 @@ import { Observable } from 'rxjs/Observable';
 import { Transaction } from '../models/transaction.model';
 import { DatePipe } from '@angular/common';
 import { tap } from 'rxjs/operators/tap';
-import moment = require('moment');
 import { Subject } from 'rxjs/Subject';
+import * as moment from 'moment'
 
 @Injectable()
 export class TransactionService {

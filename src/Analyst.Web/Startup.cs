@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Analyst.Web
 {
@@ -32,7 +33,7 @@ namespace Analyst.Web
                 configuration.RootPath = "ClientApp/dist";
             });
 
-            services.AddDbContext<AnalystDbContext>((System.IServiceProvider sp, DbContextOptionsBuilder builder) =>
+            services.AddDbContext<AnalystDbContext>((IServiceProvider sp, DbContextOptionsBuilder builder) =>
             {
                 IHostingEnvironment env = sp.GetRequiredService<IHostingEnvironment>();
                 builder.UseSqlite(Configuration.GetConnectionString("Sqlite").Replace("[ROOT]", env.ContentRootPath));
@@ -48,7 +49,7 @@ namespace Analyst.Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, AnalystDbContext store)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -82,7 +83,13 @@ namespace Analyst.Web
                 }
             });
 
-            store.Database.Migrate();
+            var db = serviceProvider.GetRequiredService<AnalystDbContext>();
+            db.Database.Migrate();
+
+            if (bool.TryParse(Configuration["SeedDatabase"], out bool seed) && seed)
+            {
+                Seeder.SeedDb(db);
+            }
         }
     }
 }
