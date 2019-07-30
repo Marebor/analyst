@@ -43,38 +43,47 @@
   ],
   "filters": [
     {
+      "id": 1,
       "tagNamesIfTrue": [ "Zakupy codzienne" ],
       "Expression": "['biedronka', 'zabka', 'żabka', 'lidl', 'aldi', 'SKLEP MUSZELKA', 'FRESHMARKET'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
+      "id": 2,
       "tagNamesIfTrue": [ "Samochód" ],
       "Expression": "['lotos', 'orlen', 'shell'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
+      "id": 3,
       "tagNamesIfTrue": [ "Lunch" ],
       "Expression": "['pasibus', '8 stolikow', 'wolt polska'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
+      "id": 4,
       "tagNamesIfTrue": [ "Restauracje" ],
       "Expression": "['tricolore', 'McDonalds', 'pyszne.pl'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
+      "id": 5,
       "tagNamesIfTrue": [ "Oszczędności" ],
       "Expression": "['conseq'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
+      "id": 6,
       "tagNamesIfTrue": [ "Koszty stałe" ],
       "Expression": "['38 1020 2313 0000 3402 0435 5863', 'LOKAL 04-009-121', 'DOŁADOWANIE TELEFONU'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
+      "id": 7,
       "tagNamesIfTrue": [ "Odzież i buty" ],
       "Expression": "['LPP RESERVED', 'CCC'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
+      "id": 8,
       "tagNamesIfTrue": [ "Zdrowie" ],
       "Expression": "['apteka'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     },
     {
+      "id": 9,
       "tagNamesIfTrue": [ "Wygląd i kosmetyki" ],
       "Expression": "['barber', 'rossman'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
     }

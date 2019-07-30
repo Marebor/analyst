@@ -1,4 +1,5 @@
 ﻿using Analyst.Core.Models;
+using Analyst.Core.Services.Abstract;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +8,7 @@ namespace Analyst.Web.Infrastructure
 {
     public class Seeder
     {
-        public static void SeedStore(InMemoryStore store)
+        public static void SeedStore<T>(T store) where T : IStore<Tag>, IStore<Filter>
         {
             var filepath = Path.Combine(Directory.GetCurrentDirectory(), "seed.json");
 
@@ -17,8 +18,8 @@ namespace Analyst.Web.Infrastructure
                 var content = reader.ReadToEnd();
                 var seed = JsonConvert.DeserializeObject<Seed>(content);
 
-                store.Save(seed.Tags);
-                store.Save(seed.Filters);
+                store.Save(seed.Tags).Wait();
+                store.Save(seed.Filters).Wait();
             }
         }
 

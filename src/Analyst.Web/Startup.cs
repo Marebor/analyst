@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,18 +32,23 @@ namespace Analyst.Web
                 configuration.RootPath = "ClientApp/dist";
             });
 
-            services.AddSingleton<IStore<Transaction>, InMemoryStore>();
-            services.AddSingleton<IStore<Tag>, InMemoryStore>();
-            services.AddSingleton<IStore<Filter>, InMemoryStore>();
-            services.AddSingleton<IStore<TagAssignment>, InMemoryStore>();
-            services.AddSingleton<IStore<TagSuppression>, InMemoryStore>();
+            services.AddDbContext<AnalystDbContext>((System.IServiceProvider sp, DbContextOptionsBuilder builder) =>
+            {
+                IHostingEnvironment env = sp.GetRequiredService<IHostingEnvironment>();
+                builder.UseSqlite(Configuration.GetConnectionString("Sqlite").Replace("[ROOT]", env.ContentRootPath));
+            });
+            services.AddScoped<IStore<Transaction>, Store>();
+            services.AddScoped<IStore<Tag>, Store>();
+            services.AddScoped<IStore<Filter>, Store>();
+            services.AddScoped<IStore<TagAssignment>, Store>();
+            services.AddScoped<IStore<TagSuppression>, Store>();
             services.AddScoped<TransactionService>();
             services.AddScoped<TagService>();
             services.AddScoped<FilterService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, AnalystDbContext store)
         {
             if (env.IsDevelopment())
             {
@@ -75,6 +81,8 @@ namespace Analyst.Web
                     spa.UseAngularCliServer(npmScript: "start");
                 }
             });
+
+            store.Database.Migrate();
         }
     }
 }
