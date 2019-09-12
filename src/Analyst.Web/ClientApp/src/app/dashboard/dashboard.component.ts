@@ -35,6 +35,7 @@ export class DashboardComponent implements OnInit {
   selectedTransaction: Transaction;
   expandList: boolean = false;
   activeTab: string = 'Transakcje';
+  loadingXml: boolean = false;
 
   constructor(
     private transactionService: TransactionService, 
@@ -47,20 +48,6 @@ export class DashboardComponent implements OnInit {
     const days = 14;
     this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
 
-    // forkJoin(
-    //   this.mappingService.mappings$.pipe(take(1)), 
-    //   this.refreshTransactions().pipe(take(1)), 
-    //   this.tagService.tags$).pipe(take(1))
-    // .subscribe(([mappings, transactions, tags]) => {
-    //   this.mappings = mappings;
-    //   this.tags = tags;
-    //   this.mapTags(mappings);
-    // });
-
-    // this.mappingService.mappings$.pipe(take(1)).subscribe(x => {
-    //   this.mappings = x;
-    //   this.mapTags(this.mappings);
-    // });
     this.refreshTransactions().subscribe();
     this.tagService.tags$.pipe(
       tap(x => this.tags = x),
@@ -94,7 +81,11 @@ export class DashboardComponent implements OnInit {
           to: transactions.reduce((a, b) => moment(a).isAfter(b.orderDate) ? a : b.orderDate, transactions[0].orderDate)
         }
       }
+
+      this.loadingXml = false;
     });
+  
+    this.loadingXml = true;
   }
 
   toggleMode() {

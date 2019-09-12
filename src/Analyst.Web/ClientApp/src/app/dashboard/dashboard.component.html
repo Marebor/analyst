@@ -4,18 +4,23 @@
     <app-file-upload (fileSelected)="onFileSelected($event)"></app-file-upload>
   </div>
 </div>
-<div class="datepicker-wrapper">
-  <h1>
-    Transakcje od <b>{{ dateRange.from | date:'dd.MM.yyyy' }}</b> do <b>{{ dateRange.to | date:'dd.MM.yyyy' }}</b>
-    <i (click)="showCalendar = !showCalendar">zmień</i>
-  </h1>
-  <div *ngIf="showCalendar" class="datepicker">
-    <app-date-range (dateRangeChange)="onDateRangeChanged($event)"></app-date-range>
+<div *ngIf="loadingXml; else notLoading" class="loader">
+  <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+</div>
+<ng-template #notLoading>
+  <div class="datepicker-wrapper">
+    <h1>
+      Transakcje od <b>{{ dateRange.from | date:'dd.MM.yyyy' }}</b> do <b>{{ dateRange.to | date:'dd.MM.yyyy' }}</b>
+      <i (click)="showCalendar = !showCalendar">zmień</i>
+    </h1>
+    <div *ngIf="showCalendar" class="datepicker">
+      <app-date-range (dateRangeChange)="onDateRangeChanged($event)"></app-date-range>
+    </div>
   </div>
-</div>
-<div class="chart-wrapper">
-  <app-chart [transactions$]="filteredTransactions$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
-</div>
+  <div class="chart-wrapper">
+    <app-chart [transactions$]="filteredTransactions$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
+  </div>
+</ng-template>
 <div class="list-wrapper" [class.expanded]="expandList">
   <div class="list-bar">
     <div class="expand-button" (click)="toggleMode()">

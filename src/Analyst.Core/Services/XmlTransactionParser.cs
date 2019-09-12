@@ -1,6 +1,7 @@
 ﻿using Analyst.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Xml.Linq;
 
@@ -18,12 +19,12 @@ namespace Analyst.Core.Services
             {
                 yield return new Transaction
                 {
-                    OrderDate = DateTime.Parse(xmlTransaction.Element("order-date").Value),
-                    ExecutionDate = DateTime.Parse(xmlTransaction.Element("exec-date").Value),
+                    OrderDate = DateTime.Parse(xmlTransaction.Element("order-date").Value, CultureInfo.InvariantCulture),
+                    ExecutionDate = DateTime.Parse(xmlTransaction.Element("exec-date").Value, CultureInfo.InvariantCulture),
                     Type = xmlTransaction.Element("type").Value,
                     Description = xmlTransaction.Element("description").Value,
-                    Amount = decimal.Parse(xmlTransaction.Element("amount").Value),
-                    EndingBalance = decimal.Parse(xmlTransaction.Element("ending-balance").Value),
+                    Amount = decimal.Parse(xmlTransaction.Element("amount").Value.Replace(',', '.'), CultureInfo.InvariantCulture),
+                    EndingBalance = decimal.Parse(xmlTransaction.Element("ending-balance").Value.Replace(',', '.'), CultureInfo.InvariantCulture),
                 };
             }
         }

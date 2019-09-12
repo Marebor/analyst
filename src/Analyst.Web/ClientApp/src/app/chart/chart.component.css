@@ -4,16 +4,18 @@
 
 .canvas-wrapper {
   position: relative;
-  width: 60%;
+  width: calc(2 * (60vh - 90px)); /* 2 = canvas width/height, 90px ~= menu + header */
   margin: 0 auto;
 }
 
 .summary {
   position: absolute;
-  top: 60px;
+  top: 0px;
   right: 60px;
   width: 27%;
   font-size: 14px;
+  overflow-y: auto;
+  height: 290px;
 }
 
 .tag-summary {

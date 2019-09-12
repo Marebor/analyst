@@ -175,6 +175,11 @@ export class MappingService {
 
     tagAssignments.forEach(a => {
       const transaction = transactions.find(t => t.id === a.transactionId);
+
+      if (!transaction) {
+        return;
+      }
+      
       const tag = this.tags.find(t => t.name === a.tagName);
       const mapping = new Mapping(tag, transaction, null);
 
