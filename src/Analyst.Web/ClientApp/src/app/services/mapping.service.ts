@@ -7,12 +7,10 @@ import { TransactionService } from './transaction.service';
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Mapping, TransactionTagPair } from './mapping.model';
 import { Subject } from 'rxjs';
 import { tap, skip, switchMap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
-import { first } from 'rxjs/operator/first';
 import { take } from 'rxjs/operators';
 import { Changes, ChangesHandler } from './changes';
 
@@ -179,7 +177,7 @@ export class MappingService {
       if (!transaction) {
         return;
       }
-      
+
       const tag = this.tags.find(t => t.name === a.tagName);
       const mapping = new Mapping(tag, transaction, null);
 
@@ -195,7 +193,7 @@ export class MappingService {
     const deletedMappings: Mapping[] = [];
 
     deletedFilters.forEach(df => {
-      deletedMappings.push(...mappings.filter(m => m.filter.id === df.id));
+      deletedMappings.push(...mappings.filter(m => m.filter && m.filter.id === df.id));
     });
 
     return deletedMappings;

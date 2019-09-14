@@ -2,16 +2,14 @@ import { ChangesHandler } from './../services/changes';
 import { Subject } from 'rxjs/Subject';
 import { Mapping } from './../services/mapping.model';
 import { MappingService } from './../services/mapping.service';
-import { FilterService } from './../services/filter.service';
 import { TagService } from './../services/tag.service';
 import { Transaction } from './../models/transaction.model';
 import { Component, OnInit } from '@angular/core';
 import { TransactionService } from '../services/transaction.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {  Observable } from 'rxjs';
 import { Tag } from '../models/tag.model';
-import { Filter } from '../models/filter.model';
 import * as moment from 'moment'
-import { take, filter } from 'rxjs/operators';
+import { take, filter, skip } from 'rxjs/operators';
 import { tap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
 import { Changes } from '../services/changes';
@@ -48,18 +46,29 @@ export class DashboardComponent implements OnInit {
     const days = 14;
     this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
 
-    this.refreshTransactions().subscribe();
+    //this.refreshTransactions().subscribe();
     this.tagService.tags$.pipe(
+      skip(1),
       tap(x => this.tags = x),
       filter(_ => !!this.mappings)
     ).subscribe(x => {
       this.mapTags(this.mappings);
     });
 
-    this.mappingService.mappingsChanges$.subscribe(c => {
+    this.mappingService.mappingsChanges$.pipe(skip(1)).subscribe(c => {
       ChangesHandler.handle(c, this.mappings, (a, b) => a.isEqual(b));
       this.handleMappingChange(c);
-    })
+    });
+
+    forkJoin(
+      this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to),
+      this.tagService.tags$.pipe(take(1)),
+      this.mappingService.mappingsChanges$.pipe(take(1))
+    ).subscribe(([transactions, tags, mappingsChanges]) => {
+      this.tags = tags;
+      ChangesHandler.handle(mappingsChanges, this.mappings, (a, b) => a.isEqual(b));
+      this.onTransactionsRefreshed(transactions);
+    });
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
@@ -173,15 +182,14 @@ export class DashboardComponent implements OnInit {
 
   private refreshTransactions(): Observable<Transaction[]> {
     return this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to).pipe(
-      tap(x => {
-        this.transactions = x;
-        this.transactions.forEach(t => t.tags = []);
-        this.mapTags(this.mappings);
+      tap(x => this.onTransactionsRefreshed(x)));
+  }
 
-        if (this.mappings) {
-          this.emitFilteredTransactions();
-        }
-      }));
+  private onTransactionsRefreshed(transactions: Transaction[]): void {
+    this.transactions = transactions;
+    this.transactions.forEach(t => t.tags = []);
+    this.mapTags(this.mappings);
+    this.emitFilteredTransactions();
   }
 
   private emitFilteredTransactions() {
