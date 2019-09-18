@@ -32,7 +32,6 @@ namespace Analyst.Web.Infrastructure
                 }
             }
 
-
             foreach (var filter in seed.Filters)
             {
                 if (!db.Filters.Any(x => x.Equals(filter)))

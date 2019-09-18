@@ -28,6 +28,9 @@ namespace Analyst.Web.Infrastructure
             modelBuilder.Entity<Filter>().Property(x => x.TagNamesIfTrue).HasConversion(
                 x => string.Join(';', x.ToArray()),
                 x => x.Split(';', StringSplitOptions.None).ToList());
+            modelBuilder.Entity<Filter>().Property(x => x.Keywords).HasConversion(
+                x => string.Join(';', x.ToArray()),
+                x => x.Split(';', StringSplitOptions.None).ToList());
 
             modelBuilder.Entity<TagAssignment>().ToTable("TagAssignments");
             modelBuilder.Entity<TagAssignment>().HasKey(x => new { x.TagName, x.TransactionId });

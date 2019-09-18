@@ -32,19 +32,19 @@ namespace Analyst.Web.Infrastructure
         public Task Delete(TagSuppression entity)
             => SaveChanges(() => dbContext.TagSuppressions.Remove(entity));
 
-        public Task<IEnumerable<TOut>> Query<TOut>(Func<IQueryable<Transaction>, IQueryable<TOut>> filter)
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Transaction>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Transactions));
 
-        public Task<IEnumerable<TOut>> Query<TOut>(Func<IQueryable<Tag>, IQueryable<TOut>> filter)
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Tag>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Tags));
 
-        public Task<IEnumerable<TOut>> Query<TOut>(Func<IQueryable<Filter>, IQueryable<TOut>> filter)
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Filter>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Filters));
 
-        public Task<IEnumerable<TOut>> Query<TOut>(Func<IQueryable<TagAssignment>, IQueryable<TOut>> filter)
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<TagAssignment>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.TagAssignments));
 
-        public Task<IEnumerable<TOut>> Query<TOut>(Func<IQueryable<TagSuppression>, IQueryable<TOut>> filter)
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<TagSuppression>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.TagSuppressions));
 
         public Task<Transaction> Save(Transaction entity)
@@ -120,7 +120,7 @@ namespace Analyst.Web.Infrastructure
             await dbContext.SaveChangesAsync();
         }
 
-        private async Task<IEnumerable<T>> Query<T>(IQueryable<T> query)
+        private async Task<IReadOnlyCollection<T>> Query<T>(IQueryable<T> query)
         {
             var returned = await query.ToListAsync();
 

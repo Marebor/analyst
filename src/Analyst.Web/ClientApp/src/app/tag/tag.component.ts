@@ -1,9 +1,5 @@
 import { TagService } from './../services/tag.service';
-import { MappingService } from '../services/mapping.service';
-import { Transaction } from '../models/transaction.model';
-import { FilterService } from '../services/filter.service';
-import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Component, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Tag } from '../models/tag.model';
 
 @Component({

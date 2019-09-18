@@ -11,12 +11,16 @@ namespace Analyst.Core.Services
     public class TransactionService
     {
         IStore<Transaction> transactionStore;
-        IStore<Tag> tagStore;
+        TagService tagService;
+        IStore<TagAssignment> tagAssignmentStore;
+        IStore<TagSuppression> tagSuppressionStore;
 
-        public TransactionService(IStore<Transaction> transactionStore, IStore<Tag> tagStore)
+        public TransactionService(IStore<Transaction> transactionStore, TagService tagService, IStore<TagAssignment> tagAssignmentStore, IStore<TagSuppression> tagSuppressionStore)
         {
             this.transactionStore = transactionStore;
-            this.tagStore = tagStore;
+            this.tagService = tagService;
+            this.tagAssignmentStore = tagAssignmentStore;
+            this.tagSuppressionStore = tagSuppressionStore;
         }
 
         public async Task<IEnumerable<Transaction>> SaveTransactionsFromXml(Stream xml)
@@ -33,30 +37,49 @@ namespace Analyst.Core.Services
             return transactionsToSave;
         }
 
-        public async Task SetIgnoredValue(int transactionId, bool value)
+        public async Task AddTagToTransaction(int transactionId, string tagName)
         {
-            var transaction = await GetTransaction(transactionId);
+            var tag = await tagService.GetTagByName(tagName);
 
-            transaction.Ignored = value;
-
-            await transactionStore.Save(transaction);
-        }
-
-        private async Task<Transaction> GetTransaction(int transactionId)
-        {
-            var transaction = (await transactionStore.Query(q => q.Where(x => x.Id == transactionId))).FirstOrDefault();
-
-            if (transaction == null)
+            if (tag == null)
             {
-                throw new Exception($"transaction with ID = {transactionId} does not exist.");
+                throw new Exception($"Tag {tagName} does not exist.");
             }
 
-            return transaction;
+            var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
+            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
+
+            if (tagSuppression != null)
+            {
+                await tagSuppressionStore.Delete(tagSuppression);
+
+                return;
+            }
+
+            if (tagAssignment != null)
+            {
+                return;
+            }
+
+            await tagAssignmentStore.Save(new TagAssignment { TagName = tagName, TransactionId = transactionId });
         }
 
-        private async Task<Tag> GetTagByName(string tagName)
-            => (await tagStore.Query(q => q
-                .Where(x => x.Name == tagName)))
-                .FirstOrDefault();
+        public async Task RemoveTagFromTransaction(int transactionId, string tagName)
+        {
+            var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
+            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
+
+            if (tagAssignment != null)
+            {
+                await tagAssignmentStore.Delete(tagAssignment);
+
+                return;
+            }
+
+            if (tagSuppression == null)
+            {
+                await tagSuppressionStore.Save(new TagSuppression { TagName = tagName, TransactionId = transactionId });
+            }
+        }
     }
 }

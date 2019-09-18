@@ -1,3 +1,4 @@
+import { BrowsingService } from './services/browsing.service';
 import { FilterService } from './services/filter.service';
 import { FileUploadComponent } from './file-upload/file-upload.component';
 import { ChartComponent } from './chart/chart.component';
@@ -16,7 +17,6 @@ import { FilterManagerComponent } from './filter-manager/filter-manager.componen
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { DateRangeComponent } from './date-range/date-range.component';
 import { DatePipe } from '@angular/common';
-import { MappingService } from './services/mapping.service';
 import { TagComponent } from './tag/tag.component';
 
 @NgModule({
@@ -45,7 +45,7 @@ import { TagComponent } from './tag/tag.component';
     TransactionService,
     TagService,
     FilterService,
-    MappingService,
+    BrowsingService,
     DatePipe
   ],
   bootstrap: [AppComponent]

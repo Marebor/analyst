@@ -8,6 +8,5 @@ export interface Transaction {
   description: string,
   amount: number,
   endingBalance: number,
-  ignored: boolean,
   tags: Tag[],
 }

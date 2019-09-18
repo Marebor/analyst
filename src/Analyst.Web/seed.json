@@ -1,11 +1,15 @@
 {
   "tags": [
     {
+      "name": "IGNORE",
+      "color": "gray"
+    },
+    {
       "name": "Zakupy codzienne",
       "color": "#4CAF50"
     },
     {
-      "name": "Franek",
+      "name": "Dzieci",
       "color": "#E91E63"
     },
     {
@@ -44,48 +48,53 @@
   "filters": [
     {
       "id": 1,
-      "tagNamesIfTrue": [ "Zakupy codzienne" ],
-      "Expression": "['biedronka', 'zabka', 'żabka', 'lidl', 'aldi', 'SKLEP MUSZELKA', 'FRESHMARKET'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "tagNamesIfTrue": [ "IGNORE" ],
+      "keywords": [ "81 1020 2313 0000 3402 0601 3983" ]
     },
     {
       "id": 2,
-      "tagNamesIfTrue": [ "Samochód" ],
-      "Expression": "['lotos', 'orlen', 'shell'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "tagNamesIfTrue": [ "Zakupy codzienne" ],
+      "keywords": [ "biedronka", "zabka", "żabka", "lidl", "aldi", "SKLEP MUSZELKA", "FRESHMARKET" ]
     },
     {
       "id": 3,
-      "tagNamesIfTrue": [ "Lunch" ],
-      "Expression": "['pasibus', '8 stolikow', 'wolt polska'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "tagNamesIfTrue": [ "Samochód" ],
+      "keywords": [ "lotos", "orlen", "shell" ]
     },
     {
       "id": 4,
-      "tagNamesIfTrue": [ "Restauracje" ],
-      "Expression": "['tricolore', 'McDonalds', 'pyszne.pl'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "tagNamesIfTrue": [ "Lunch" ],
+      "keywords": [ "pasibus", "8 stolikow", "wolt polska", "kamil kolosowski", "BK KATOWICE MURCKOWSKA" ]
     },
     {
       "id": 5,
-      "tagNamesIfTrue": [ "Oszczędności" ],
-      "Expression": "['conseq'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "tagNamesIfTrue": [ "Restauracje" ],
+      "keywords": [ "tricolore", "McDonalds", "pyszne.pl" ]
     },
     {
       "id": 6,
-      "tagNamesIfTrue": [ "Koszty stałe" ],
-      "Expression": "['38 1020 2313 0000 3402 0435 5863', 'LOKAL 04-009-121', 'DOŁADOWANIE TELEFONU'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "tagNamesIfTrue": [ "Oszczędności" ],
+      "keywords": [ "conseq" ]
     },
     {
       "id": 7,
-      "tagNamesIfTrue": [ "Odzież i buty" ],
-      "Expression": "['LPP RESERVED', 'CCC'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "tagNamesIfTrue": [ "Koszty stałe" ],
+      "keywords": [ "38 1020 2313 0000 3402 0435 5863", "LOKAL 04-009-121", "DOŁADOWANIE TELEFONU", "tauron", "pgnig" ]
     },
     {
       "id": 8,
-      "tagNamesIfTrue": [ "Zdrowie" ],
-      "Expression": "['apteka'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "tagNamesIfTrue": [ "Odzież i buty" ],
+      "keywords": [ "LPP RESERVED", "CCC" ]
     },
     {
       "id": 9,
+      "tagNamesIfTrue": [ "Zdrowie" ],
+      "keywords": [ "apteka" ]
+    },
+    {
+      "id": 10,
       "tagNamesIfTrue": [ "Wygląd i kosmetyki" ],
-      "Expression": "['barber', 'rossman'].find(x => description.indexOf(x.toLowerCase()) >= 0) !== undefined"
+      "keywords": [ "barber", "rossman" ]
     }
   ]
 }

@@ -6,7 +6,7 @@ namespace Analyst.Core.Models
     {
         public int Id { get; set; }
         public IEnumerable<string> TagNamesIfTrue { get; set; }
-        public string Expression { get; set; }
+        public IEnumerable<string> Keywords { get; set; }
 
         public override bool Equals(object obj)
         {

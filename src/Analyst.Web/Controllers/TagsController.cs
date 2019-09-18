@@ -44,38 +44,10 @@ namespace Analyst.Web.Controllers
             return Ok();
         }
 
-        [HttpGet("assignments")]
-        public async Task<IActionResult> GetAllTagsAssignments()
-        {
-            return Ok(await tagAssignmentStore.Query(q => q));
-        }
-
-        [HttpGet("suppressions")]
-        public async Task<IActionResult> GetAllTagsSuppressions()
-        {
-            return Ok(await tagSuppressionStore.Query(q => q));
-        }
-
         [HttpPost("{tagName}/color")]
         public async Task<IActionResult> ChangeTagColor(string tagName, [FromBody]string color)
         {
             await tagService.ChangeTagColor(tagName, color);
-
-            return Ok();
-        }
-
-        [HttpPost("{tagName}/transactions")]
-        public async Task<IActionResult> AddTransaction(string tagName, [FromBody]int transactionId)
-        {
-            await tagService.AddTransactionToTag(transactionId, tagName);
-
-            return Ok();
-        }
-
-        [HttpDelete("{tagName}/transactions/{transactionId}")]
-        public async Task<IActionResult> RemoveTransaction(int transactionId, string tagName)
-        {
-            await tagService.RemoveTransactionFromTag(transactionId, tagName);
 
             return Ok();
         }

@@ -1,4 +1,3 @@
-import { ChangesHandler } from './../services/changes';
 import { TagService } from './../services/tag.service';
 import { Tag } from './../models/tag.model';
 import { FilterService } from './../services/filter.service';
@@ -23,7 +22,7 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
   addingNewFilter: boolean;
   showDeleteFilterTooltip: boolean;
   expressionButtonText: string;
-  editedFilter: { id: number, tags: Tag[], expression: string };
+  editedFilter: { id: number, tags: Tag[], keywords: string[] };
   expressionNotChecked: boolean;
   expressionOk: boolean;
   expressionWrong: boolean;
@@ -37,8 +36,8 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
   }
   
   ngOnInit() {
-    this.filterService.filtersChanged$.subscribe(x => ChangesHandler.handle(x, this.filters, (a, b) => a.id === b.id));
-    this.tagService.tags$.subscribe(x => this.tags = x);
+    // this.filterService.filtersChanged$.subscribe(x => ChangesHandler.handle(x, this.filters, (a, b) => a.id === b.id));
+    // this.tagService.tags$.subscribe(x => this.tags = x);
     this.tagSelected$.subscribe(tag => {
       if (this.editedFilter && !this.editedFilter.tags.find(t => t.name === tag.name)) {
         this.editedFilter.tags.push(tag);
@@ -61,8 +60,7 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     if (!this.editedFilter) {
       this.scrollTarget = scrollTarget;
       this.addingNewFilter = true;
-      this.editedFilter = { id: null, tags: [], expression: null };
-      this.expressionChanged(null);
+      this.editedFilter = { id: null, tags: [], keywords: [] };
     }
   }
 
@@ -74,7 +72,7 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     this.editedFilter = { 
       id: this.selectedFilter.id, 
       tags: this.selectedFilter.tagNamesIfTrue.map(x => this.tags.find(t => t.name === x)),
-      expression: this.selectedFilter.expression 
+      keywords: this.selectedFilter.keywords 
     };
     this.addingNewFilter = false;
     this.selectedFilterElement.scrollIntoView();
@@ -123,30 +121,6 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  checkEditedFilterExpression() {
-    const isCorrect = this.filterService.isExpressionCorrect(this.editedFilter.expression);
-
-    if (isCorrect) {
-      this.expressionNotChecked = false;
-      this.expressionOk = true;
-      this.expressionWrong = false;
-      this.expressionButtonText = 'Ok';
-    } else {
-      this.expressionNotChecked = false;
-      this.expressionOk = false;
-      this.expressionWrong = true;
-      this.expressionButtonText = 'Błąd';
-    }
-  }
-
-  expressionChanged(input: HTMLInputElement) {
-    this.editedFilter.expression = input ? input.value : null;
-    this.expressionNotChecked = true;
-    this.expressionOk = false;
-    this.expressionWrong = false;
-    this.expressionButtonText = 'Sprawdź';
-  }
-
   confirmChanges() {
     const onSucceeded = () => {
       this.addingNewFilter = false;
@@ -156,9 +130,9 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     if (!this.expressionOk || this.editedFilter.tags.length === 0) {
       return;
     } else if (this.addingNewFilter) {
-      this.filterService.createFilter(this.editedFilter.tags, this.editedFilter.expression).subscribe(_ => this.cancelEditMode());
+      this.filterService.createFilter(this.editedFilter.tags, this.editedFilter.keywords).subscribe(_ => this.cancelEditMode());
     } else {
-      this.filterService.editFilter(this.editedFilter.id, this.editedFilter.tags, this.editedFilter.expression).subscribe(() => this.cancelEditMode());
+      this.filterService.editFilter(this.editedFilter.id, this.editedFilter.tags, this.editedFilter.keywords).subscribe(() => this.cancelEditMode());
     }
 
     this.selectedFilter = null;

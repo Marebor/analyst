@@ -10,14 +10,10 @@ namespace Analyst.Core.Services
     public class TagService
     {
         IStore<Tag> tagStore;
-        IStore<TagAssignment> tagAssignmentStore;
-        IStore<TagSuppression> tagSuppressionStore;
 
-        public TagService(IStore<Tag> tagStore, IStore<TagAssignment> tagAssignmentStore, IStore<TagSuppression> tagSuppressionStore)
+        public TagService(IStore<Tag> tagStore)
         {
             this.tagStore = tagStore;
-            this.tagAssignmentStore = tagAssignmentStore;
-            this.tagSuppressionStore = tagSuppressionStore;
         }
 
         public async Task<Tag> CreateTag(string tagName, string color)
@@ -56,55 +52,10 @@ namespace Analyst.Core.Services
             await tagStore.Save(tag);
         }
 
-        public async Task AddTransactionToTag(int transactionId, string tagName)
-        {
-            var tag = await GetTagByName(tagName);
-
-            if (tag == null)
-            {
-                throw new Exception($"Tag {tagName} does not exist.");
-            }
-
-            var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
-            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
-
-            if (tagSuppression != null)
-            {
-                await tagSuppressionStore.Delete(tagSuppression);
-
-                return;
-            }
-
-            if (tagAssignment != null)
-            {
-                return;
-            }
-
-            await tagAssignmentStore.Save(new TagAssignment { TagName = tagName, TransactionId = transactionId });
-        }
-
-        public async Task RemoveTransactionFromTag(int transactionId, string tagName)
-        {
-            var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
-            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
-
-            if (tagAssignment != null)
-            {
-                await tagAssignmentStore.Delete(tagAssignment);
-
-                return;
-            }
-
-            if (tagSuppression == null)
-            {
-                await tagSuppressionStore.Save(new TagSuppression { TagName = tagName, TransactionId = transactionId });
-            }
-        }
-
-        private async Task<Tag> GetTagByName(string tagName, Expression<Func<Tag, bool>> additionalFilter = null)
+        public async Task<Tag> GetTagByName(string tagName, Expression<Func<Tag, bool>> additionalFilter = null)
             => (await tagStore.Query(q => q
                 .Where(x => x.Name == tagName)
                 .Where(additionalFilter == null ? x => true : additionalFilter)))
-                .FirstOrDefault();
+                .SingleOrDefault();
     }
 }

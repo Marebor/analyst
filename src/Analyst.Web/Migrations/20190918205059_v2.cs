@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Analyst.Web.Migrations
 {
-    public partial class Initial : Migration
+    public partial class v2 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -14,7 +14,7 @@ namespace Analyst.Web.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     TagNamesIfTrue = table.Column<string>(nullable: true),
-                    Expression = table.Column<string>(nullable: true)
+                    Keywords = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {

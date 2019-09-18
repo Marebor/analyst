@@ -1,7 +1,6 @@
-import { ChangesHandler } from './../services/changes';
+import { IBrowsingData } from './../models/browsing-data';
+import { BrowsingService } from './../services/browsing.service';
 import { Subject } from 'rxjs/Subject';
-import { Mapping } from './../services/mapping.model';
-import { MappingService } from './../services/mapping.service';
 import { TagService } from './../services/tag.service';
 import { Transaction } from './../models/transaction.model';
 import { Component, OnInit } from '@angular/core';
@@ -9,10 +8,9 @@ import { TransactionService } from '../services/transaction.service';
 import {  Observable } from 'rxjs';
 import { Tag } from '../models/tag.model';
 import * as moment from 'moment'
-import { take, filter, skip } from 'rxjs/operators';
+import { flatMap } from 'rxjs/operators';
 import { tap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
-import { Changes } from '../services/changes';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,11 +18,10 @@ import { Changes } from '../services/changes';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-
+  browsingData: IBrowsingData;
   filteredTransactions$: Subject<Transaction[]> = new Subject<Transaction[]>();
   tagSelected_transactionsList$: Subject<Tag> = new Subject<Tag>();
   tagSelected_filterManager$: Subject<Tag> = new Subject<Tag>();
-  mappings: Mapping[] = [];
   transactions: Transaction[];
   tags: Tag[];
   showCalendar: boolean;
@@ -36,9 +33,9 @@ export class DashboardComponent implements OnInit {
   loadingXml: boolean = false;
 
   constructor(
+    private browsingService: BrowsingService,
     private transactionService: TransactionService, 
     private tagService: TagService,
-    private mappingService: MappingService,
     ) { }
 
   ngOnInit() {
@@ -46,50 +43,56 @@ export class DashboardComponent implements OnInit {
     const days = 14;
     this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
 
-    //this.refreshTransactions().subscribe();
-    this.tagService.tags$.pipe(
-      skip(1),
-      tap(x => this.tags = x),
-      filter(_ => !!this.mappings)
-    ).subscribe(x => {
-      this.mapTags(this.mappings);
-    });
-
-    this.mappingService.mappingsChanges$.pipe(skip(1)).subscribe(c => {
-      ChangesHandler.handle(c, this.mappings, (a, b) => a.isEqual(b));
-      this.handleMappingChange(c);
-    });
+    this.tagService
+      .getTags()
+      .subscribe(tags => this.tags = tags);
+    this.browsingService
+      .browse(this.dateRange.from, this.dateRange.to)
+      .subscribe(result => this.browsingData = result);
 
     forkJoin(
-      this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to),
-      this.tagService.tags$.pipe(take(1)),
-      this.mappingService.mappingsChanges$.pipe(take(1))
-    ).subscribe(([transactions, tags, mappingsChanges]) => {
+      this.browsingService
+        .browse(this.dateRange.from, this.dateRange.to)
+        .pipe(
+          tap(result => this.browsingData = result),
+          flatMap(result => this.transactionService.getTransactions(
+            this.getDistinctTansactionIds(result.transactionsPerTag)))),
+      this.tagService.getTags()
+    ).subscribe(([transactions, tags]) => {
       this.tags = tags;
-      ChangesHandler.handle(mappingsChanges, this.mappings, (a, b) => a.isEqual(b));
-      this.onTransactionsRefreshed(transactions);
+      this.handleTransactionsChange(transactions);
     });
+  }
+
+  private getDistinctTansactionIds(transactionsPerTag: { [tagName: string]: number[]}[]): number[] {
+    const ids: number[] = [];
+
+    for (let tag in transactionsPerTag) {
+      const notExistingIds = (<any>transactionsPerTag[tag]).filter(x => ids.indexOf(x) === -1);
+      ids.push(...notExistingIds);
+    }
+
+    return ids;
+  }
+
+  private handleTransactionsChange(transactions: Transaction[]) {
+
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
     this.dateRange = dateRange;
-    this.refreshTransactions().subscribe();
+    this.refresh();
     this.showCalendar = false;
   }
 
   onFileSelected(file: any) {
     this.transactionService.addTransactionsFromXml(file).subscribe(transactions => {
-      if (transactions.length > 0) {
-        this.transactions = transactions;
-        this.transactions.forEach(t => t.tags = []);
-        this.mapTags(this.mappings);
-        this.selectedTag = null;
-        this.filteredTransactions$.next(transactions);
-        this.dateRange = { 
-          from: transactions.reduce((a, b) => moment(a).isBefore(b.orderDate) ? a : b.orderDate, transactions[0].orderDate), 
-          to: transactions.reduce((a, b) => moment(a).isAfter(b.orderDate) ? a : b.orderDate, transactions[0].orderDate)
-        }
-      }
+      // if (transactions.length > 0) {
+      //   this.dateRange = { 
+      //     from: transactions.reduce((a, b) => moment(a).isBefore(b.orderDate) ? a : b.orderDate, transactions[0].orderDate), 
+      //     to: transactions.reduce((a, b) => moment(a).isAfter(b.orderDate) ? a : b.orderDate, transactions[0].orderDate)
+      //   }
+      // }
 
       this.loadingXml = false;
     });
@@ -113,8 +116,6 @@ export class DashboardComponent implements OnInit {
     }
 
     this.activeTab = 'Transakcje';
-
-    this.emitFilteredTransactions();
   }
   
   tagClicked(tag: Tag) {
@@ -134,75 +135,27 @@ export class DashboardComponent implements OnInit {
   }
 
   changeTransactionIgnoreValue(transaction: Transaction) {
-    const currentValue = true && transaction.ignored;
-    this.transactionService.setIgnoredValue(transaction.id, !currentValue).subscribe(() => {
-      this.transactions.find(t => t.id === transaction.id).ignored = !currentValue;
-      this.emitFilteredTransactions();
-    });
-  }
+    const isIgnored = transaction.tags.findIndex(tag => tag.name === 'IGNORED') !== -1;
 
-  private mapTags(mappings: Mapping[]) {
-    if (!mappings || !this.tags || !this.transactions) {
-      return;
-    }
-
-    mappings.forEach(m => {
-      const tag = this.tags.find(t => t.name === m.tag.name);
-      const transaction = this.transactions.find(t => t.id === m.transaction.id);
-      
-      if (!tag || !transaction) {
-        return;
-      } else  if (!transaction.tags) {
-        transaction.tags = [tag];
-      } else if (!transaction.tags.find(t => t.name === tag.name)) {
-        transaction.tags.push(tag);
-      }
-    });
-  }
-
-  private handleMappingChange(changes: Changes<Mapping>) {
-    this.mapTags(changes.new);
-
-    changes.deleted.forEach(m => {
-      const transaction = this.transactions.find(t => t.id === m.transaction.id);
-      
-      if (transaction) {
-        const index = transaction.tags.findIndex(t => t.name === m.tag.name);
-
-        if (index >= 0) {
+    if (isIgnored) {
+      this.transactionService.removeTagFromTransaction(transaction.id, 'IGNORED')
+        .subscribe(() => {
+          const index = transaction.tags.findIndex(tag => tag.name === 'IGNORED');
           transaction.tags.splice(index, 1);
-        }
-      }
-    });
-    
-    if (this.transactions) {
-      this.emitFilteredTransactions();
-    }
-  }
-
-  private refreshTransactions(): Observable<Transaction[]> {
-    return this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to).pipe(
-      tap(x => this.onTransactionsRefreshed(x)));
-  }
-
-  private onTransactionsRefreshed(transactions: Transaction[]): void {
-    this.transactions = transactions;
-    this.transactions.forEach(t => t.tags = []);
-    this.mapTags(this.mappings);
-    this.emitFilteredTransactions();
-  }
-
-  private emitFilteredTransactions() {
-    if (!this.selectedTag) {
-      this.filteredTransactions$.next(this.transactions);
-    } else if (this.selectedTag.name !== 'Inne') {
-      this.filteredTransactions$.next(
-        this.transactions.filter(t => t.tags.find(x => x.name === this.selectedTag.name))
-      );
+        });
     } else {
-      this.filteredTransactions$.next(
-        this.transactions.filter(t => t.tags.length === 0)
-      );
+      this.transactionService.addTagToTransaction(transaction.id, 'IGNORED')
+        .subscribe(() => {
+          const tag = this.tags.find(t => t.name === 'IGNORED');
+          transaction.tags.push(tag);
+        })
     }
+  }
+
+  private refresh(): void {
+    this.browsingService.browse(this.dateRange.from, this.dateRange.to)
+      .subscribe(browsingData => {
+        this.browsingData = browsingData;
+      });
   }
 }

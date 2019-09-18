@@ -1,6 +1,7 @@
 ﻿using Analyst.Core.Models;
 using Analyst.Core.Services.Abstract;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,16 +9,40 @@ namespace Analyst.Core.Services
 {
     public class FilterService
     {
-        private readonly IStore<Filter> filterStore;
+        IStore<Filter> filterStore;
+        TagService tagService;
 
-        public FilterService(IStore<Filter> filterStore)
+        public FilterService(IStore<Filter> filterStore, TagService tagService)
         {
             this.filterStore = filterStore;
+            this.tagService = tagService;
         }
 
         public async Task<Filter> CreateFilter(Filter filter)
         {
-            var existingFilter = (await filterStore.Query(q => q.Where(x => x.Expression.ToLowerInvariant() == filter.Expression.ToLowerInvariant()))).FirstOrDefault();
+            if (filter.TagNamesIfTrue == null || !filter.TagNamesIfTrue.Any())
+            {
+                throw new Exception("Cannot create filter without any tag assigned");
+            }
+
+            var tagsTasks = filter.TagNamesIfTrue.ToDictionary(tagName => tagName, tagName => tagService.GetTagByName(tagName));
+
+            await Task.WhenAll(tagsTasks.Values);
+
+            var notExistingTags = tagsTasks.Where(task => task.Value.Result == null).ToDictionary(x => x.Key, x => x.Value);
+
+            if (notExistingTags.Count > 0)
+            {
+                throw new Exception($"Cannot create filter with not existing tag assigned. Incorrect tags: {string.Join(", ", notExistingTags.Keys)}");
+            }
+
+            Func<IEnumerable<string>, IEnumerable<string>> keywordsSequence = keywords => keywords
+                    .Select(kw => kw.ToLowerInvariant())
+                    .OrderBy(kw => kw);
+
+            var existingFilter = (await filterStore.Query(q => q
+                .Where(f => keywordsSequence(f.Keywords).SequenceEqual(keywordsSequence(filter.Keywords)))))
+                .FirstOrDefault();
 
             if (existingFilter != null)
             {
@@ -39,7 +64,7 @@ namespace Analyst.Core.Services
             }
 
             filterEntity.TagNamesIfTrue = filter.TagNamesIfTrue;
-            filterEntity.Expression = filter.Expression;
+            filterEntity.Keywords = filter.Keywords;
 
             await filterStore.Save(filterEntity);
         }

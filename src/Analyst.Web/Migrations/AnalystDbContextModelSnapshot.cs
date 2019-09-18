@@ -14,14 +14,14 @@ namespace Analyst.Web.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.1.11-servicing-32099");
+                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024");
 
             modelBuilder.Entity("Analyst.Core.Models.Filter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Expression");
+                    b.Property<string>("Keywords");
 
                     b.Property<string>("TagNamesIfTrue");
 
