@@ -46,6 +46,13 @@ namespace Analyst.Core.Services
                 throw new Exception($"Tag {tagName} does not exist.");
             }
 
+            var transaction = (await transactionStore.Query(q => q.Where(t => t.Id == transactionId))).SingleOrDefault();
+
+            if (transaction == null)
+            {
+                throw new Exception($"Transaction with id = {transactionId} does not exist.");
+            }
+
             var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
             var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
 
@@ -67,7 +74,6 @@ namespace Analyst.Core.Services
         public async Task RemoveTagFromTransaction(int transactionId, string tagName)
         {
             var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
-            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
 
             if (tagAssignment != null)
             {
@@ -76,10 +82,26 @@ namespace Analyst.Core.Services
                 return;
             }
 
+            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
+
             if (tagSuppression == null)
             {
                 await tagSuppressionStore.Save(new TagSuppression { TagName = tagName, TransactionId = transactionId });
             }
+        }
+
+        public async Task SetIgnoredValue(int transactionId, bool newValue)
+        {
+            var transaction = (await transactionStore.Query(q => q.Where(t => t.Id == transactionId))).SingleOrDefault();
+
+            if (transaction == null)
+            {
+                throw new Exception($"Transaction with id = {transactionId} does not exist.");
+            }
+
+            transaction.Ignored = newValue;
+
+            await transactionStore.Save(transaction);
         }
     }
 }

@@ -5,17 +5,15 @@ namespace Analyst.Core.Models
 {
     public class BrowsingData
     {
-        public BrowsingData(DateTime startDate, DateTime endDate, IReadOnlyDictionary<string, decimal> spendingsPerTag, IReadOnlyDictionary<string, IEnumerable<int>> transactionsPerTag)
+        public BrowsingData(IReadOnlyCollection<TransactionWithTags> transactions, IReadOnlyDictionary<string, decimal> spendingsPerTag, decimal otherSpendings)
         {
-            StartDate = startDate;
-            EndDate = endDate;
+            Transactions = transactions;
             SpendingsPerTag = spendingsPerTag;
-            TransactionsPerTag = transactionsPerTag;
+            OtherSpendings = otherSpendings;
         }
 
-        public DateTime StartDate { get; }
-        public DateTime EndDate { get; }
+        public IReadOnlyCollection<TransactionWithTags> Transactions { get; }
         public IReadOnlyDictionary<string, decimal> SpendingsPerTag { get; }
-        public IReadOnlyDictionary<string, IEnumerable<int>> TransactionsPerTag { get; }
+        public decimal OtherSpendings { get; }
     }
 }

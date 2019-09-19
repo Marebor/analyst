@@ -1,3 +1,4 @@
+import { IBrowsingData } from './../models/browsing-data';
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
@@ -12,22 +13,11 @@ export class TransactionService {
     ) {
   }
 
-  getTransactions(ids: number[]): Observable<Transaction[]> {
-    return this.httpClient.get<Transaction[]>(
-      `${this.originUrl}api/transactions`,
-      {
-        params: {
-          transactionIds: ids.map(x => x.toString())
-        }
-      }
-    );
-  }
-
-  addTransactionsFromXml(file: any): Observable<Transaction[]> {
+  addTransactionsFromXml(file: any): Observable<IBrowsingData> {
     const formData = new FormData(); 
     formData.append('file', file, file.name); 
 
-    return this.httpClient.post<Transaction[]>(`${this.originUrl}api/transactions/xml`, formData);
+    return this.httpClient.post<IBrowsingData>(`${this.originUrl}api/transactions/xml`, formData);
   }
 
   addTagToTransaction(transactionId: number, tagName: string): Observable<void> {

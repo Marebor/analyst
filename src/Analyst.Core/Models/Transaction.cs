@@ -12,19 +12,5 @@ namespace Analyst.Core.Models
         public decimal Amount { get; set; }
         public decimal EndingBalance { get; set; }
         public bool Ignored { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            var other = obj as Filter;
-
-            return other != null ? other.Id == Id : false;
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = -805798031;
-            hashCode = hashCode * -1521134295 + Id.GetHashCode();
-            return hashCode;
-        }
     }
 }

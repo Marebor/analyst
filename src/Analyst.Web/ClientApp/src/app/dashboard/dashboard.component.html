@@ -39,7 +39,7 @@
   <div class="list">
     <div class="list-template" [hidden]="activeTab !== 'Transakcje'">
       <app-transactions-list 
-      [transactions$]="filteredTransactions$"
+      [transactions]="transactions"
       [tagSelected$]="tagSelected_transactionsList$"
       (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"></app-transactions-list>
     </div>

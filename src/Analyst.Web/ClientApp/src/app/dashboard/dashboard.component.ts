@@ -5,11 +5,8 @@ import { TagService } from './../services/tag.service';
 import { Transaction } from './../models/transaction.model';
 import { Component, OnInit } from '@angular/core';
 import { TransactionService } from '../services/transaction.service';
-import {  Observable } from 'rxjs';
 import { Tag } from '../models/tag.model';
 import * as moment from 'moment'
-import { flatMap } from 'rxjs/operators';
-import { tap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs/observable/forkJoin';
 
 @Component({
@@ -43,40 +40,25 @@ export class DashboardComponent implements OnInit {
     const days = 14;
     this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
 
-    this.tagService
-      .getTags()
-      .subscribe(tags => this.tags = tags);
-    this.browsingService
-      .browse(this.dateRange.from, this.dateRange.to)
-      .subscribe(result => this.browsingData = result);
-
     forkJoin(
-      this.browsingService
-        .browse(this.dateRange.from, this.dateRange.to)
-        .pipe(
-          tap(result => this.browsingData = result),
-          flatMap(result => this.transactionService.getTransactions(
-            this.getDistinctTansactionIds(result.transactionsPerTag)))),
+      this.browsingService.browse(this.dateRange.from, this.dateRange.to),
       this.tagService.getTags()
-    ).subscribe(([transactions, tags]) => {
+    ).subscribe(([browsingData, tags]) => {
       this.tags = tags;
-      this.handleTransactionsChange(transactions);
+      this.browsingData = browsingData;
+      this.mapTags();
+      this.transactions = this.browsingData.transactions.map(t => t.transaction);
     });
   }
 
-  private getDistinctTansactionIds(transactionsPerTag: { [tagName: string]: number[]}[]): number[] {
-    const ids: number[] = [];
-
-    for (let tag in transactionsPerTag) {
-      const notExistingIds = (<any>transactionsPerTag[tag]).filter(x => ids.indexOf(x) === -1);
-      ids.push(...notExistingIds);
-    }
-
-    return ids;
-  }
-
-  private handleTransactionsChange(transactions: Transaction[]) {
-
+  private mapTags() {
+    this.browsingData.transactions.forEach(t => {
+      if (!t.transaction.tags) {
+        t.transaction.tags = [];
+        const tags = t.tags.map(tagName => this.tags.find(tag => tag.name === tagName));
+        t.transaction.tags.push(...tags);
+      }
+    });
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
@@ -86,13 +68,20 @@ export class DashboardComponent implements OnInit {
   }
 
   onFileSelected(file: any) {
-    this.transactionService.addTransactionsFromXml(file).subscribe(transactions => {
-      // if (transactions.length > 0) {
-      //   this.dateRange = { 
-      //     from: transactions.reduce((a, b) => moment(a).isBefore(b.orderDate) ? a : b.orderDate, transactions[0].orderDate), 
-      //     to: transactions.reduce((a, b) => moment(a).isAfter(b.orderDate) ? a : b.orderDate, transactions[0].orderDate)
-      //   }
-      // }
+    this.transactionService.addTransactionsFromXml(file).subscribe(browsingData => {
+      if (browsingData.transactions.length > 0) {
+        this.dateRange = { 
+          from: browsingData.transactions.reduce((a, b) => 
+            moment(a).isBefore(b.transaction.orderDate) ? a : b.transaction.orderDate, 
+            browsingData.transactions[0].transaction.orderDate), 
+          to: browsingData.transactions.reduce((a, b) => 
+            moment(a).isAfter(b.transaction.orderDate) ? a : b.transaction.orderDate, 
+            browsingData.transactions[0].transaction.orderDate)
+        };
+        this.browsingData = browsingData;
+        this.mapTags();
+        this.transactions = this.browsingData.transactions.map(t => t.transaction);
+      }
 
       this.loadingXml = false;
     });
@@ -156,6 +145,8 @@ export class DashboardComponent implements OnInit {
     this.browsingService.browse(this.dateRange.from, this.dateRange.to)
       .subscribe(browsingData => {
         this.browsingData = browsingData;
+        this.mapTags();
+        this.transactions = this.browsingData.transactions.map(t => t.transaction);
       });
   }
 }

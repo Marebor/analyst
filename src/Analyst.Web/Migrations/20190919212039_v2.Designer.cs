@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Analyst.Web.Migrations
 {
     [DbContext(typeof(AnalystDbContext))]
-    [Migration("20190918205059_v2")]
+    [Migration("20190919212039_v2")]
     partial class v2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -10,17 +10,15 @@ import { TagService } from '../services/tag.service';
   styleUrls: ['./transactions-list.component.css']
 })
 export class TransactionsListComponent implements OnInit {
-  @Input() transactions$: Observable<Transaction[]>;
+  @Input() transactions: Transaction[];
   @Input() tagSelected$: Observable<Tag>;
   @Output() transactionIgnoreValueChanged: EventEmitter<Transaction> = new EventEmitter<Transaction>();
-  transactions: Transaction[];
   selectedTransaction: Transaction;
 
   constructor(private tagService: TagService) {
   }
 
   ngOnInit() {
-    this.transactions$.subscribe(x => this.transactions = x);
     this.tagSelected$.subscribe(tag => {
       if (this.selectedTransaction && !this.selectedTransaction.tags.find(t => t.name === tag.name)) {
         //this.mappingService.addTransactionToTag(tag.name, this.selectedTransaction.id).subscribe();

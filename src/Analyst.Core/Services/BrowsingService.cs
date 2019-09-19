@@ -1,6 +1,5 @@
 ﻿using Analyst.Core.Models;
 using Analyst.Core.Services.Abstract;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,11 +21,9 @@ namespace Analyst.Core.Services
             this.tagSuppressionStore = tagSuppressionStore;
         }
 
-        public async Task<BrowsingData> Browse(DateTime startDate, DateTime endDate)
+        public async Task<BrowsingData> Browse(IEnumerable<Transaction> transactions)
         {
-            var transactions = await transactionStore.Query(q => q
-                .Where(t => t.OrderDate >= startDate && t.OrderDate <= endDate)
-                .OrderByDescending(x => x.OrderDate));
+
             var filters = await filterStore.Query(q => q);
             var assignments = await tagAssignmentStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
             var suppressions = await tagSuppressionStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
@@ -37,10 +34,21 @@ namespace Analyst.Core.Services
             AddTransactionsFromAssignments(transactionsPerTag, transactions, assignments);
 
             return new BrowsingData(
-                startDate,
-                endDate,
-                transactionsPerTag.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Where(t => t.Amount < 0).Sum(t => t.Amount)),
-                transactionsPerTag.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Select(t => t.Id)));
+                transactions
+                    .Select(t => new TransactionWithTags(t, transactionsPerTag
+                        .Where(kvp => kvp.Value.Any(v => v.Id == t.Id))
+                        .Select(kvp => kvp.Key)))
+                    .ToArray(),
+                transactionsPerTag
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value
+                        .Where(t => t.Amount < 0)
+                        .Where(t => !t.Ignored)
+                        .Sum(t => t.Amount)),
+                transactions
+                    .Where(t => !transactionsPerTag.SelectMany(kvp => kvp.Value).Any(v => t.Id == v.Id))
+                    .Where(t => t.Amount < 0)
+                    .Where(t => !t.Ignored)
+                    .Sum(t => t.Amount));
         }
 
         private void AddTransactionsFromFilters(
@@ -51,7 +59,7 @@ namespace Analyst.Core.Services
         {
             foreach (var filter in filters)
             {
-                var filteredTransactions = transactions.Where(t => filter.Keywords.Any(kw => t.Description.Contains(kw)));
+                var filteredTransactions = transactions.Where(t => filter.Keywords.Any(kw => t.Description.ToLowerInvariant().Contains(kw.ToLowerInvariant())));
 
                 foreach (var transaction in filteredTransactions)
                 {
