@@ -43,12 +43,12 @@ namespace Analyst.Core.Services
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value
                         .Where(t => t.Amount < 0)
                         .Where(t => !t.Ignored)
-                        .Sum(t => t.Amount)),
+                        .Sum(t => -t.Amount)),
                 transactions
                     .Where(t => !transactionsPerTag.SelectMany(kvp => kvp.Value).Any(v => t.Id == v.Id))
                     .Where(t => t.Amount < 0)
                     .Where(t => !t.Ignored)
-                    .Sum(t => t.Amount));
+                    .Sum(t => -t.Amount));
         }
 
         private void AddTransactionsFromFilters(

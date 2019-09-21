@@ -1,8 +1,7 @@
 import { Transaction } from "./transaction.model";
 
 export interface IBrowsingData {
-    startDate: Date,
-    EndDate: Date,
-    spendingsPerTag: { [tagName: string]: number[]}[],
+    spendingsPerTag: { [tagName: string]: number },
+    otherSpendings: number;
     transactions: { transaction: Transaction, tags: string[] }[]
 }

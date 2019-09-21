@@ -1,3 +1,4 @@
+import { ChartDataItem } from './../chart/chart-data-item.model';
 import { IBrowsingData } from './../models/browsing-data';
 import { BrowsingService } from './../services/browsing.service';
 import { Subject } from 'rxjs/Subject';
@@ -28,6 +29,36 @@ export class DashboardComponent implements OnInit {
   expandList: boolean = false;
   activeTab: string = 'Transakcje';
   loadingXml: boolean = false;
+
+  get chartData(): ChartDataItem[] {
+    if (!this.browsingData) {
+      return [];
+    }
+
+    const array: ChartDataItem[] = [];
+    
+    for (let tagName in this.browsingData.spendingsPerTag) {
+      const spendings = this.browsingData.spendingsPerTag[tagName];
+      
+      if (spendings > 0) {
+        array.push({
+          tag: this.tags.find(t => t.name === tagName),
+          transactions: [],
+          spendings: spendings
+        });
+      }
+    }
+
+    if (this.browsingData.otherSpendings > 0) {
+      array.push({
+        tag: { name: 'Inne', color: 'lightgray' },
+        transactions: [],
+        spendings: this.browsingData.otherSpendings
+      });
+    }
+
+    return array;
+  }
 
   constructor(
     private browsingService: BrowsingService,
@@ -148,5 +179,18 @@ export class DashboardComponent implements OnInit {
         this.mapTags();
         this.transactions = this.browsingData.transactions.map(t => t.transaction);
       });
+  }
+  get sortedData(): { tagName: string, spendings: number }[] {
+    if (!this.browsingData) {
+      return [];
+    }
+
+    const array: { tagName: string, spendings: number }[] = [];
+    
+    for (let key in this.browsingData.spendingsPerTag) {
+      array.push({ tagName: key, spendings: this.browsingData.spendingsPerTag[key] });
+    }
+
+    return array.sort((a, b) => b.spendings - a.spendings);
   }
 }

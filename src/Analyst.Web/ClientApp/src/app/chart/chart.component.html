@@ -1,4 +1,4 @@
-<div *ngIf="displayChart; else noData" class="wrapper">
+<div *ngIf="dataAvailable; else noData" class="wrapper">
   <div class="canvas-wrapper">
     <canvas baseChart
       [data]="pieChartData"
@@ -11,8 +11,8 @@
       (chartClick)="chartClicked($event)"></canvas>
   </div>
   <div class="summary">
-    <div *ngFor="let item of data; let i = index" class="tag-summary">
-      <div class="amount">{{ pieChartData[i] | number:'1.2-2' }} zł</div>
+    <div *ngFor="let item of sortedData" class="tag-summary">
+      <div class="amount">{{ item.spendings | number:'1.2-2' }} zł</div>
       <app-tag *ngIf="item.tag.name !== 'Inne'; else othersSummary" 
       [tag]="item.tag" [allowChangeColor]="true" [tooltipSide]="'right'"
       (click)="onTagClicked(item.tag)"></app-tag>
