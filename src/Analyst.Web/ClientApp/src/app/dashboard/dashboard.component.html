@@ -18,7 +18,7 @@
     </div>
   </div>
   <div class="chart-wrapper">
-    <app-chart [data]="chartData" (tagClicked)="tagClickedOnChart($event)"></app-chart>
+    <app-chart [data$]="chartData$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
   </div>
 </ng-template>
 <div class="list-wrapper" [class.expanded]="expandList">
@@ -39,7 +39,7 @@
   <div class="list">
     <div class="list-template" [hidden]="activeTab !== 'Transakcje'">
       <app-transactions-list 
-      [transactions]="transactions"
+      [transactions$]="transactionListData$"
       [tagSelected$]="tagSelected_transactionsList$"
       (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"></app-transactions-list>
     </div>

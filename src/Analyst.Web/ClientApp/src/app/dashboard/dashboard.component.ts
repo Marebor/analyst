@@ -17,7 +17,8 @@ import { forkJoin } from 'rxjs/observable/forkJoin';
 })
 export class DashboardComponent implements OnInit {
   browsingData: IBrowsingData;
-  filteredTransactions$: Subject<Transaction[]> = new Subject<Transaction[]>();
+  chartData$: Subject<ChartDataItem[]> = new Subject<ChartDataItem[]>();
+  transactionListData$: Subject<Transaction[]> = new Subject<Transaction[]>();
   tagSelected_transactionsList$: Subject<Tag> = new Subject<Tag>();
   tagSelected_filterManager$: Subject<Tag> = new Subject<Tag>();
   transactions: Transaction[];
@@ -29,36 +30,6 @@ export class DashboardComponent implements OnInit {
   expandList: boolean = false;
   activeTab: string = 'Transakcje';
   loadingXml: boolean = false;
-
-  get chartData(): ChartDataItem[] {
-    if (!this.browsingData) {
-      return [];
-    }
-
-    const array: ChartDataItem[] = [];
-    
-    for (let tagName in this.browsingData.spendingsPerTag) {
-      const spendings = this.browsingData.spendingsPerTag[tagName];
-      
-      if (spendings > 0) {
-        array.push({
-          tag: this.tags.find(t => t.name === tagName),
-          transactions: [],
-          spendings: spendings
-        });
-      }
-    }
-
-    if (this.browsingData.otherSpendings > 0) {
-      array.push({
-        tag: { name: 'Inne', color: 'lightgray' },
-        transactions: [],
-        spendings: this.browsingData.otherSpendings
-      });
-    }
-
-    return array;
-  }
 
   constructor(
     private browsingService: BrowsingService,
@@ -76,26 +47,16 @@ export class DashboardComponent implements OnInit {
       this.tagService.getTags()
     ).subscribe(([browsingData, tags]) => {
       this.tags = tags;
-      this.browsingData = browsingData;
-      this.mapTags();
-      this.transactions = this.browsingData.transactions.map(t => t.transaction);
-    });
-  }
-
-  private mapTags() {
-    this.browsingData.transactions.forEach(t => {
-      if (!t.transaction.tags) {
-        t.transaction.tags = [];
-        const tags = t.tags.map(tagName => this.tags.find(tag => tag.name === tagName));
-        t.transaction.tags.push(...tags);
-      }
+      this.onBrowsingDataFetched(browsingData);
     });
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
-    this.dateRange = dateRange;
-    this.refresh();
+    this.dateRange = dateRange;    
+    this.browsingService.browse(this.dateRange.from, this.dateRange.to)
+      .subscribe(browsingData => this.onBrowsingDataFetched(browsingData));
     this.showCalendar = false;
+    this.selectedTag = null;
   }
 
   onFileSelected(file: any) {
@@ -109,9 +70,7 @@ export class DashboardComponent implements OnInit {
             moment(a).isAfter(b.transaction.orderDate) ? a : b.transaction.orderDate, 
             browsingData.transactions[0].transaction.orderDate)
         };
-        this.browsingData = browsingData;
-        this.mapTags();
-        this.transactions = this.browsingData.transactions.map(t => t.transaction);
+        this.onBrowsingDataFetched(browsingData);
       }
 
       this.loadingXml = false;
@@ -135,6 +94,7 @@ export class DashboardComponent implements OnInit {
       this.selectedTag = null;
     }
 
+    this.publishData();
     this.activeTab = 'Transakcje';
   }
   
@@ -172,25 +132,81 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private refresh(): void {
-    this.browsingService.browse(this.dateRange.from, this.dateRange.to)
-      .subscribe(browsingData => {
-        this.browsingData = browsingData;
-        this.mapTags();
-        this.transactions = this.browsingData.transactions.map(t => t.transaction);
-      });
+  private onBrowsingDataFetched(browsingData: IBrowsingData) {
+    this.browsingData = browsingData;
+    this.mapTags();
+    this.transactions = this.browsingData.transactions.map(t => t.transaction);
+    this.publishData();
   }
-  get sortedData(): { tagName: string, spendings: number }[] {
+
+  private mapTags() {
+    this.browsingData.transactions.forEach(t => {
+      if (!t.transaction.tags) {
+        t.transaction.tags = [];
+        const tags = t.tags.map(tagName => this.tags.find(tag => tag.name === tagName));
+        t.transaction.tags.push(...tags);
+      }
+    });
+  }
+
+  private publishData() {    
+    this.chartData$.next(this.getChartData());
+    this.transactionListData$.next(this.getTransactionListData());
+  }
+  
+  private getChartData(): ChartDataItem[] {
     if (!this.browsingData) {
       return [];
     }
 
-    const array: { tagName: string, spendings: number }[] = [];
+    const array: ChartDataItem[] = [];
     
-    for (let key in this.browsingData.spendingsPerTag) {
-      array.push({ tagName: key, spendings: this.browsingData.spendingsPerTag[key] });
+    if (!this.selectedTag) {
+      for (let tagName in this.browsingData.spendingsPerTag) {
+        const spendings = this.browsingData.spendingsPerTag[tagName];
+        
+        if (spendings > 0) {
+          array.push({
+            tag: this.tags.find(t => t.name === tagName),
+            transactions: [],
+            spendings: spendings
+          });
+        }
+      }
+  
+      if (this.browsingData.otherSpendings > 0) {
+        array.push({
+          tag: { name: 'Inne', color: 'lightgray' },
+          transactions: [],
+          spendings: this.browsingData.otherSpendings
+        });
+      }
+    } else {
+      array.push({
+        tag: this.selectedTag,
+        transactions: [],
+        spendings: this.selectedTag.name !== 'Inne' ?
+          this.browsingData.spendingsPerTag[this.selectedTag.name] : this.browsingData.otherSpendings
+      })
     }
 
-    return array.sort((a, b) => b.spendings - a.spendings);
+    return array
+      .filter(x => x.spendings > 0)
+      .sort((a, b) => a.tag.name === 'Inne' ? 1 : b.spendings - a.spendings);
+  }
+
+  private getTransactionListData(): Transaction[] {
+    if (!this.browsingData) {
+      return [];
+    }
+
+    if (this.selectedTag) {
+      return this.browsingData.transactions
+        .map(t => t.transaction)
+        .filter(t => this.selectedTag.name !== 'Inne' ?
+          t.tags.findIndex(tag => tag.name === this.selectedTag.name) >= 0 : t.tags.length === 0);
+    } else {
+      return this.browsingData.transactions.map(t => t.transaction);
+    }
   }
 }

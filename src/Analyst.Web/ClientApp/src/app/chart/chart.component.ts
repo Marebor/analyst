@@ -5,29 +5,27 @@ import { Transaction } from '../models/transaction.model';
 import { Tag } from '../models/tag.model';
 import { Subscription } from 'rxjs/Subscription';
 import { ChartDataItem } from './chart-data-item.model';
+import { Observable } from '../../../node_modules/rxjs/Observable';
 
 @Component({
   selector: 'app-chart',
   templateUrl: './chart.component.html',
   styleUrls: ['./chart.component.css']
 })
-export class ChartComponent {
-  @Input() data: ChartDataItem[];
+export class ChartComponent implements OnInit, OnDestroy {
+  @Input() data$: Observable<ChartDataItem[]>;
   @Output() tagClicked: EventEmitter<Tag> = new EventEmitter<Tag>();
+  data: ChartDataItem[];
+  dataSubscription: Subscription;
 
-  get sortedData(): ChartDataItem[] {
-    return this.data
-      .filter(x => x.spendings > 0)
-      .sort((a, b) => a.tag.name === 'Inne' ? 1 : b.spendings - a.spendings);
-  }
   get pieChartLabels(): string[] {
-    return this.sortedData ? this.sortedData.map(x => x.tag.name) : [];
+    return this.data ? this.data.map(x => x.tag.name) : [];
   }
   get pieChartData(): number[] {
-    return this.sortedData ? this.sortedData.map(x => x.spendings) : [];
+    return this.data ? this.data.map(x => x.spendings) : [];
   }
   get pieChartColors(): any {
-    return this.sortedData ? [{ backgroundColor: this.sortedData.map(x => x.tag.color) }] : [{ backgroundColor: [] }];
+    return this.data ? [{ backgroundColor: this.data.map(x => x.tag.color) }] : [{ backgroundColor: [] }];
   }
   pieChartType: string = 'pie';
   pieChartOptions = {
@@ -35,11 +33,22 @@ export class ChartComponent {
   };
 
   get dataAvailable(): boolean {
-    return this.sortedData && this.sortedData.length > 0;
+    return this.data && this.data.length > 0;
   }
 
   get total(): number {
-    return this.sortedData.reduce((a, b) => a + b.spendings, 0);
+    return this.data.reduce((a, b) => a + b.spendings, 0);
+  }
+
+  ngOnInit() {
+    this.dataSubscription = this.data$.subscribe(data => {
+      this.data = null;
+      setTimeout(() => this.data = data);
+    });
+  }
+
+  ngOnDestroy() {
+    this.dataSubscription.unsubscribe();
   }
 
   chartHovered($event: any) {
@@ -47,7 +56,7 @@ export class ChartComponent {
   }
 
   chartClicked($event: any) {
-    const tag = this.sortedData[$event.active[0]._index].tag;
+    const tag = this.data[$event.active[0]._index].tag;
     this.onTagClicked(tag);
   }
 

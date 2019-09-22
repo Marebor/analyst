@@ -10,9 +10,10 @@ import { TagService } from '../services/tag.service';
   styleUrls: ['./transactions-list.component.css']
 })
 export class TransactionsListComponent implements OnInit {
-  @Input() transactions: Transaction[];
+  @Input() transactions$: Observable<Transaction[]>;
   @Input() tagSelected$: Observable<Tag>;
   @Output() transactionIgnoreValueChanged: EventEmitter<Transaction> = new EventEmitter<Transaction>();
+  transactions: Transaction[];
   selectedTransaction: Transaction;
 
   constructor(private tagService: TagService) {
@@ -24,6 +25,8 @@ export class TransactionsListComponent implements OnInit {
         //this.mappingService.addTransactionToTag(tag.name, this.selectedTransaction.id).subscribe();
       }
     });
+
+    this.transactions$.subscribe(transactions => this.transactions = transactions);
   }
 
   transactionClicked(transaction: Transaction) {
