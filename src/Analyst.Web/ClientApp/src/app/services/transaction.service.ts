@@ -37,7 +37,8 @@ export class TransactionService {
       tap(() => this._transactionChanged$.next({
         transactionId,
         action: 'tagAdded',
-        tagName
+        tagName,
+        ignored: null,
       }))
     )
   }
@@ -49,7 +50,23 @@ export class TransactionService {
       tap(() => this._transactionChanged$.next({
         transactionId,
         action: 'tagRemoved',
-        tagName
+        tagName,
+        ignored: null,
+      }))
+    )
+  }
+
+  changeIgnoredValue(transactionId: number, ignored: boolean): Observable<void> {
+    return this.httpClient.put<void>(
+      `${this.originUrl}api/transactions/${transactionId}/ignored`,
+      `\"${ignored}\"`, 
+      { headers: { 'Content-Type': 'application/json' } }
+    ).pipe(
+      tap(() => this._transactionChanged$.next({
+        transactionId,
+        action: 'ignoredValueChanged',
+        tagName: null,
+        ignored,
       }))
     )
   }

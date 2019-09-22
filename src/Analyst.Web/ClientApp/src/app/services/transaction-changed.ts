@@ -1,5 +1,6 @@
 export interface ITransactionChanged {
     transactionId: number,
-    action: 'tagAdded' | 'tagRemoved',
+    action: 'tagAdded' | 'tagRemoved' | 'ignoredValueChanged',
     tagName: string,
+    ignored: boolean,
 }

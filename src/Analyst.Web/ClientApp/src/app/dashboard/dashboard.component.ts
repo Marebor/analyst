@@ -117,20 +117,10 @@ export class DashboardComponent implements OnInit {
   }
 
   changeTransactionIgnoreValue(transaction: Transaction) {
-    const isIgnored = transaction.tags.findIndex(tag => tag.name === 'IGNORED') !== -1;
-
-    if (isIgnored) {
-      this.transactionService.removeTagFromTransaction(transaction.id, 'IGNORED')
-        .subscribe(() => {
-          const index = transaction.tags.findIndex(tag => tag.name === 'IGNORED');
-          transaction.tags.splice(index, 1);
-        });
+    if (transaction.ignored) {
+      this.transactionService.changeIgnoredValue(transaction.id, false).subscribe();
     } else {
-      this.transactionService.addTagToTransaction(transaction.id, 'IGNORED')
-        .subscribe(() => {
-          const tag = this.tags.find(t => t.name === 'IGNORED');
-          transaction.tags.push(tag);
-        })
+      this.transactionService.changeIgnoredValue(transaction.id, true).subscribe()
     }
   }
 
@@ -215,7 +205,7 @@ export class DashboardComponent implements OnInit {
     const transaction = this.browsingData.transactions.find(t => t.transaction.id === change.transactionId);
     
     if (change.action === 'tagAdded') {
-      if (transaction.transaction.amount < 0) {
+      if (transaction.transaction.amount < 0 && !transaction.transaction.ignored) {
         if (transaction.tags.length === 0) {
           this.browsingData.otherSpendings += transaction.transaction.amount;
         }
@@ -229,12 +219,36 @@ export class DashboardComponent implements OnInit {
       transaction.tags.splice(index1, 1);
       const index2 = transaction.transaction.tags.findIndex(t => t.name === change.tagName);
       transaction.transaction.tags.splice(index2, 1);
-      if (transaction.transaction.amount < 0) {
+      if (transaction.transaction.amount < 0 && !transaction.transaction.ignored) {
         this.browsingData.spendingsPerTag[change.tagName] += transaction.transaction.amount;
         if (transaction.tags.length === 0) {
           this.browsingData.otherSpendings -= transaction.transaction.amount;
         }
       }
+    } else if (change.action === 'ignoredValueChanged') {
+      if (change.ignored === true) {
+        if (transaction.transaction.amount < 0 && !transaction.transaction.ignored) {
+          if (transaction.tags.length === 0) {
+            this.browsingData.otherSpendings += transaction.transaction.amount;
+          } else {
+            transaction.tags.forEach(tag => {
+              this.browsingData.spendingsPerTag[tag] += transaction.transaction.amount;
+            });
+          }
+        }
+      } else {
+        if (transaction.transaction.amount < 0 && transaction.transaction.ignored) {
+          if (transaction.tags.length === 0) {
+            this.browsingData.otherSpendings -= transaction.transaction.amount;
+          } else {
+            transaction.tags.forEach(tag => {
+              this.browsingData.spendingsPerTag[tag] -= transaction.transaction.amount;
+            });
+          }
+        }
+      }
+
+      transaction.transaction.ignored = change.ignored;
     }
 
     this.publishData();
