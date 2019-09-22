@@ -9,6 +9,7 @@ import { TransactionService } from '../services/transaction.service';
 import { Tag } from '../models/tag.model';
 import * as moment from 'moment'
 import { forkJoin } from 'rxjs/observable/forkJoin';
+import { ITransactionChanged } from '../services/transaction-changed';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,7 +22,6 @@ export class DashboardComponent implements OnInit {
   transactionListData$: Subject<Transaction[]> = new Subject<Transaction[]>();
   tagSelected_transactionsList$: Subject<Tag> = new Subject<Tag>();
   tagSelected_filterManager$: Subject<Tag> = new Subject<Tag>();
-  transactions: Transaction[];
   tags: Tag[];
   showCalendar: boolean;
   dateRange: {from: Date, to: Date };
@@ -49,6 +49,8 @@ export class DashboardComponent implements OnInit {
       this.tags = tags;
       this.onBrowsingDataFetched(browsingData);
     });
+
+    this.transactionService.transactionChanged$.subscribe(change => this.handleTransactionChange(change));
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
@@ -135,7 +137,6 @@ export class DashboardComponent implements OnInit {
   private onBrowsingDataFetched(browsingData: IBrowsingData) {
     this.browsingData = browsingData;
     this.mapTags();
-    this.transactions = this.browsingData.transactions.map(t => t.transaction);
     this.publishData();
   }
 
@@ -208,5 +209,34 @@ export class DashboardComponent implements OnInit {
     } else {
       return this.browsingData.transactions.map(t => t.transaction);
     }
+  }
+
+  private handleTransactionChange(change: ITransactionChanged) {
+    const transaction = this.browsingData.transactions.find(t => t.transaction.id === change.transactionId);
+    
+    if (change.action === 'tagAdded') {
+      if (transaction.transaction.amount < 0) {
+        if (transaction.tags.length === 0) {
+          this.browsingData.otherSpendings += transaction.transaction.amount;
+        }
+        this.browsingData.spendingsPerTag[change.tagName] -= transaction.transaction.amount;
+      }
+      const tag = this.tags.find(t => t.name === change.tagName);
+      transaction.tags.push(change.tagName);
+      transaction.transaction.tags.push(tag);
+    } else if (change.action === 'tagRemoved') {
+      const index1 = transaction.tags.findIndex(t => t === change.tagName);
+      transaction.tags.splice(index1, 1);
+      const index2 = transaction.transaction.tags.findIndex(t => t.name === change.tagName);
+      transaction.transaction.tags.splice(index2, 1);
+      if (transaction.transaction.amount < 0) {
+        this.browsingData.spendingsPerTag[change.tagName] += transaction.transaction.amount;
+        if (transaction.tags.length === 0) {
+          this.browsingData.otherSpendings -= transaction.transaction.amount;
+        }
+      }
+    }
+
+    this.publishData();
   }
 }

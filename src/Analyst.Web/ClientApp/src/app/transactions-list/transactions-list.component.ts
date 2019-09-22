@@ -1,3 +1,4 @@
+import { TransactionService } from './../services/transaction.service';
 import { Transaction } from './../models/transaction.model';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
@@ -16,13 +17,13 @@ export class TransactionsListComponent implements OnInit {
   transactions: Transaction[];
   selectedTransaction: Transaction;
 
-  constructor(private tagService: TagService) {
+  constructor(private tagService: TagService, private transactionService: TransactionService) {
   }
 
   ngOnInit() {
     this.tagSelected$.subscribe(tag => {
       if (this.selectedTransaction && !this.selectedTransaction.tags.find(t => t.name === tag.name)) {
-        //this.mappingService.addTransactionToTag(tag.name, this.selectedTransaction.id).subscribe();
+        this.transactionService.addTagToTransaction(this.selectedTransaction.id, tag.name).subscribe();
       }
     });
 
@@ -34,11 +35,11 @@ export class TransactionsListComponent implements OnInit {
   }
 
   removeTagFromTransaction(tagName: string, transactionId: number) {
-    //this.mappingService.removeTransactionFromTag(tagName, transactionId).subscribe();
+    this.transactionService.removeTagFromTransaction(transactionId, tagName);
   }
 
   addNewTagTotransaction(inputElement: any, transactionId: number) {
-    //this.mappingService.addTransactionToTag(inputElement.value, transactionId).subscribe();
+    this.transactionService.addTagToTransaction(transactionId, inputElement.value).subscribe();
     inputElement.value = null;
   }
 
