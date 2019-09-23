@@ -1,12 +1,17 @@
+import { BrowsingService } from './browsing.service';
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
+import { tap } from '../../../node_modules/rxjs/operators';
 
 @Injectable()
 export class TagService {
 
-  constructor(@Inject('BASE_URL') private originUrl: string, private httpClient: HttpClient) {
+  constructor(
+    @Inject('BASE_URL') private originUrl: string, 
+    private httpClient: HttpClient,
+    private browsingService: BrowsingService) {
   }
   
   getTags(): Observable<Tag[]> {
@@ -14,11 +19,15 @@ export class TagService {
   }
 
   createTag(name: string, color: string): Observable<Tag> {
-    return this.httpClient.post<Tag>(`${this.originUrl}api/tags`, { name, color });
+    return this.httpClient.post<Tag>(`${this.originUrl}api/tags`, { name, color }).pipe(
+      tap(() => this.browsingService.stateChange.next())
+    );
   }
 
   deleteTag(name: string): Observable<void> {
-    return this.httpClient.delete<void>(`${this.originUrl}api/tags/${name}`);
+    return this.httpClient.delete<void>(`${this.originUrl}api/tags/${name}`).pipe(
+      tap(() => this.browsingService.stateChange.next())
+    );
   }
 
   changeTagColor(tagName: string, color: string): Observable<void> {
@@ -26,6 +35,8 @@ export class TagService {
       `${this.originUrl}api/tags/${tagName}/color`, 
       `\"${color}\"`, 
       { headers: { 'Content-Type': 'application/json' } }
+    ).pipe(
+      tap(() => this.browsingService.stateChange.next())
     );
   }
 }

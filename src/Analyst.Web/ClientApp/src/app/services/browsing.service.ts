@@ -1,3 +1,4 @@
+import { Subject } from 'rxjs/Subject';
 import { IBrowsingData } from './../models/browsing-data';
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -6,7 +7,7 @@ import { DatePipe } from '@angular/common';
 
 @Injectable()
 export class BrowsingService {
-    private browsingResult: IBrowsingData; 
+    stateChange: Subject<void> = new Subject<void>();
 
   constructor(
     @Inject('BASE_URL') private originUrl: string, 

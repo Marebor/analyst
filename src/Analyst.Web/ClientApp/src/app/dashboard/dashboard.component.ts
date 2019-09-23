@@ -9,7 +9,6 @@ import { TransactionService } from '../services/transaction.service';
 import { Tag } from '../models/tag.model';
 import * as moment from 'moment'
 import { forkJoin } from 'rxjs/observable/forkJoin';
-import { ITransactionChanged } from '../services/transaction-changed';
 
 @Component({
   selector: 'app-dashboard',
@@ -42,15 +41,9 @@ export class DashboardComponent implements OnInit {
     const days = 14;
     this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
 
-    forkJoin(
-      this.browsingService.browse(this.dateRange.from, this.dateRange.to),
-      this.tagService.getTags()
-    ).subscribe(([browsingData, tags]) => {
-      this.tags = tags;
-      this.onBrowsingDataFetched(browsingData);
-    });
+    this.refresh();
 
-    this.transactionService.transactionChanged$.subscribe(change => this.handleTransactionChange(change));
+    this.browsingService.stateChange.subscribe(() => this.refresh());
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
@@ -122,6 +115,16 @@ export class DashboardComponent implements OnInit {
     } else {
       this.transactionService.changeIgnoredValue(transaction.id, true).subscribe()
     }
+  }
+
+  private refresh(): void {
+    forkJoin(
+      this.browsingService.browse(this.dateRange.from, this.dateRange.to),
+      this.tagService.getTags()
+    ).subscribe(([browsingData, tags]) => {
+      this.tags = tags;
+      this.onBrowsingDataFetched(browsingData);
+    });
   }
 
   private onBrowsingDataFetched(browsingData: IBrowsingData) {
@@ -199,58 +202,5 @@ export class DashboardComponent implements OnInit {
     } else {
       return this.browsingData.transactions.map(t => t.transaction);
     }
-  }
-
-  private handleTransactionChange(change: ITransactionChanged) {
-    const transaction = this.browsingData.transactions.find(t => t.transaction.id === change.transactionId);
-    
-    if (change.action === 'tagAdded') {
-      if (transaction.transaction.amount < 0 && !transaction.transaction.ignored) {
-        if (transaction.tags.length === 0) {
-          this.browsingData.otherSpendings += transaction.transaction.amount;
-        }
-        this.browsingData.spendingsPerTag[change.tagName] -= transaction.transaction.amount;
-      }
-      const tag = this.tags.find(t => t.name === change.tagName);
-      transaction.tags.push(change.tagName);
-      transaction.transaction.tags.push(tag);
-    } else if (change.action === 'tagRemoved') {
-      const index1 = transaction.tags.findIndex(t => t === change.tagName);
-      transaction.tags.splice(index1, 1);
-      const index2 = transaction.transaction.tags.findIndex(t => t.name === change.tagName);
-      transaction.transaction.tags.splice(index2, 1);
-      if (transaction.transaction.amount < 0 && !transaction.transaction.ignored) {
-        this.browsingData.spendingsPerTag[change.tagName] += transaction.transaction.amount;
-        if (transaction.tags.length === 0) {
-          this.browsingData.otherSpendings -= transaction.transaction.amount;
-        }
-      }
-    } else if (change.action === 'ignoredValueChanged') {
-      if (change.ignored === true) {
-        if (transaction.transaction.amount < 0 && !transaction.transaction.ignored) {
-          if (transaction.tags.length === 0) {
-            this.browsingData.otherSpendings += transaction.transaction.amount;
-          } else {
-            transaction.tags.forEach(tag => {
-              this.browsingData.spendingsPerTag[tag] += transaction.transaction.amount;
-            });
-          }
-        }
-      } else {
-        if (transaction.transaction.amount < 0 && transaction.transaction.ignored) {
-          if (transaction.tags.length === 0) {
-            this.browsingData.otherSpendings -= transaction.transaction.amount;
-          } else {
-            transaction.tags.forEach(tag => {
-              this.browsingData.spendingsPerTag[tag] -= transaction.transaction.amount;
-            });
-          }
-        }
-      }
-
-      transaction.transaction.ignored = change.ignored;
-    }
-
-    this.publishData();
   }
 }

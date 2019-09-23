@@ -1,8 +1,10 @@
+import { Filter } from './../models/filter.model';
+import { BrowsingService } from './../services/browsing.service';
+import { forkJoin } from 'rxjs/observable/forkJoin';
 import { TagService } from './../services/tag.service';
 import { Tag } from './../models/tag.model';
 import { FilterService } from './../services/filter.service';
 import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter, Input, HostListener } from '@angular/core';
-import { Filter } from '../models/filter.model';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -19,30 +21,32 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
   tags: Tag[] = [];
   selectedFilter: Filter;
   selectedFilterElement: HTMLElement;
-  addingNewFilter: boolean;
   showDeleteFilterTooltip: boolean;
-  expressionButtonText: string;
-  editedFilter: { id: number, tags: Tag[], keywords: string[] };
-  expressionNotChecked: boolean;
-  expressionOk: boolean;
-  expressionWrong: boolean;
-  private clickedInsideComponent: boolean;
+  newFilter: Filter;
 
   get dataAvailable(): boolean {
     return !!this.filters && !!this.tags;
   }
 
-  constructor(private filterService: FilterService, private tagService: TagService) {
+  constructor(
+    private filterService: FilterService, 
+    private tagService: TagService,
+    private browsingService: BrowsingService) {
   }
   
   ngOnInit() {
-    // this.filterService.filtersChanged$.subscribe(x => ChangesHandler.handle(x, this.filters, (a, b) => a.id === b.id));
-    // this.tagService.tags$.subscribe(x => this.tags = x);
     this.tagSelected$.subscribe(tag => {
-      if (this.editedFilter && !this.editedFilter.tags.find(t => t.name === tag.name)) {
-        this.editedFilter.tags.push(tag);
-      }
+      if (this.newFilter && !this.newFilter.tags.find(t => t.name === tag.name)) {
+        this.newFilter.tags.push(tag);
+      } else if (this.selectedFilter && !this.selectedFilter.tags.find(t => t.name === tag.name)) {
+        this.selectedFilter.tags.push(tag);
+
+        this.filterService.editFilter(this.selectedFilter.id, this.selectedFilter.tags, this.selectedFilter.keywords).subscribe();
+      }      
     });
+
+    this.refresh();
+    this.browsingService.stateChange.subscribe(() => this.refresh());
   }
 
   ngAfterViewChecked() {
@@ -52,30 +56,17 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  getTags(filter: Filter): Tag[] {
-    return filter.tagNamesIfTrue.map(name => this.tags.find(t => t.name === name));
+  mapTags(): void {
+    this.filters.forEach(filter => {
+      filter.tags = filter.tagNamesIfTrue.map(name => this.tags.find(t => t.name === name));
+    })
   }
 
   addingNewFilterRequested(scrollTarget: HTMLElement) {
-    if (!this.editedFilter) {
+    if (!this.newFilter) {
       this.scrollTarget = scrollTarget;
-      this.addingNewFilter = true;
-      this.editedFilter = { id: null, tags: [], keywords: [] };
+      this.newFilter = { id: null, tagNamesIfTrue: [], tags: [], keywords: [] };
     }
-  }
-
-  editFilterRequested() {
-    if (!this.selectedFilter) {
-      return;
-    }
-
-    this.editedFilter = { 
-      id: this.selectedFilter.id, 
-      tags: this.selectedFilter.tagNamesIfTrue.map(x => this.tags.find(t => t.name === x)),
-      keywords: this.selectedFilter.keywords 
-    };
-    this.addingNewFilter = false;
-    this.selectedFilterElement.scrollIntoView();
   }
 
   deleteFilterRequested() {
@@ -89,22 +80,8 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     this.showDeleteFilterTooltip = false;
   }
 
-  addTagToEditedFilter(tagNameInput: HTMLInputElement) {
-    const tag = this.tags.find(x => x.name === tagNameInput.value);
-
-    if (tag) {
-      this.editedFilter.tags.push(tag);
-    } else {
-      this.tagService.createTag(tagNameInput.value, 'gray').subscribe(newTag => {
-        this.editedFilter.tags.push(newTag);
-      });
-    }
-
-    tagNameInput.value = null;
-  }
-
   filterClicked(filter: Filter, element: HTMLElement) {
-    if (this.editedFilter) {
+    if (this.newFilter) {
       return;
     } else if (this.selectedFilter === filter) {
       this.selectedFilter = null;
@@ -114,33 +91,80 @@ export class FilterManagerComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  tagRemovalRequested(tag: Tag) {
-    if (this.editedFilter) {
-      const index = this.editedFilter.tags.findIndex(t => t.name === tag.name);
-      this.editedFilter.tags.splice(index, 1);
+  tagRemovalRequested(filter: Filter, tag: Tag) {
+    const index = filter.tags.findIndex(t => t.name === tag.name);
+
+    if (index >= 0) {
+      filter.tags.splice(index, 1);
+
+      if (filter !== this.newFilter) {
+        this.filterService.editFilter(filter.id, filter.tags, filter.keywords).subscribe();
+      }
+    }
+  }
+
+  addTagToEditedFilter(tagNameInput: HTMLInputElement) {
+    const tag = this.tags.find(x => x.name === tagNameInput.value);
+
+    if (tag) {
+      this.newFilter.tags.push(tag);
+    } else {
+      this.tagService.createTag(tagNameInput.value, 'gray').subscribe(newTag => {
+        this.newFilter.tags.push(newTag);
+      });
+    }
+
+    tagNameInput.value = null;
+  }
+
+  keywordRemovalRequested(filter: Filter, keyword: string) {
+    const index = filter.keywords.findIndex(k => k === keyword);
+
+    if (index >= 0) {
+      filter.keywords.splice(index, 1);
+
+      if (filter !== this.newFilter) {
+        this.filterService.editFilter(filter.id, filter.tags, filter.keywords).subscribe();
+      }
+    }
+  }
+
+  addKeyword(filter: Filter, expressionInput: HTMLInputElement): void {
+    const index = filter.keywords.findIndex(k => k === expressionInput.value);
+
+    if (index === -1) {
+      filter.keywords.push(expressionInput.value);
+
+      if (filter !== this.newFilter) {
+        this.filterService.editFilter(filter.id, filter.tags, filter.keywords).subscribe();
+      }
+
+      expressionInput.value = null;
     }
   }
 
   confirmChanges() {
-    const onSucceeded = () => {
-      this.addingNewFilter = false;
-      this.editedFilter = null;
-    }
-
-    if (!this.expressionOk || this.editedFilter.tags.length === 0) {
+    if (this.newFilter.tags.length === 0 || this.newFilter.keywords.length === 0) {
       return;
-    } else if (this.addingNewFilter) {
-      this.filterService.createFilter(this.editedFilter.tags, this.editedFilter.keywords).subscribe(_ => this.cancelEditMode());
     } else {
-      this.filterService.editFilter(this.editedFilter.id, this.editedFilter.tags, this.editedFilter.keywords).subscribe(() => this.cancelEditMode());
+      this.filterService.createFilter(this.newFilter.tags, this.newFilter.keywords).subscribe(_ => this.cancelEditMode());
     }
 
     this.selectedFilter = null;
   }
 
   cancelEditMode() {
-    this.editedFilter = null;
-    this.addingNewFilter = null;
-    this.selectedFilter = null;
+    this.newFilter = null;
+  }
+
+  private refresh(): void {
+    forkJoin(
+      this.filterService.getFilters(),
+      this.tagService.getTags())
+    .subscribe(([filters, tags]) => {
+      this.filters = filters;
+      this.tags = tags;
+      this.mapTags();
+    });
   }
 }

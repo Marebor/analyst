@@ -14,6 +14,7 @@ export class TagComponent {
   @Input() tooltipSide: string = 'left';
   @Input() allowDelete: boolean;
   @Input() allowChangeColor: boolean;
+  @Input() rounded: boolean = true;
   @Output() removalRequested: EventEmitter<void> = new EventEmitter<void>();
   @ViewChild('tagColorInput') tagColorInput: HTMLInputElement;
   showTooltip: boolean;

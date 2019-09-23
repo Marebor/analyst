@@ -82,8 +82,10 @@ td {
   position: relative;
 }
 
-.expression {
-  font-family: 'Consolas';
+.keyword {
+  margin-right: 5px;
+  padding: 5px;
+  font-size: 12px;
 }
 
 .tags-wrapper {
