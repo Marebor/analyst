@@ -143,8 +143,15 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private publishData() {    
-    this.chartData$.next(this.getChartData());
+  private publishData() {
+    let chartData = this.getChartData();
+    
+    if (chartData.length === 0 && this.selectedTag) {
+      this.selectedTag = null;
+      chartData = this.getChartData();
+    }
+    
+    this.chartData$.next(chartData);
     this.transactionListData$.next(this.getTransactionListData());
   }
   

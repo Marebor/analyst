@@ -14,8 +14,13 @@
   right: 60px;
   width: 27%;
   font-size: 14px;
-  overflow-y: auto;
   height: 290px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tags {  
+  overflow-y: auto;
 }
 
 .tag-summary {

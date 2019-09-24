@@ -18,6 +18,9 @@ export class ChartComponent implements OnInit, OnDestroy {
   data: ChartDataItem[];
   dataSubscription: Subscription;
 
+  get othersDataItem(): ChartDataItem {
+    return this.data.find(x => x.tag.name === 'Inne');
+  }
   get pieChartLabels(): string[] {
     return this.data ? this.data.map(x => x.tag.name) : [];
   }
