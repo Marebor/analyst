@@ -1,6 +1,6 @@
 import { TransactionService } from './../services/transaction.service';
 import { Transaction } from './../models/transaction.model';
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
 import { TagService } from '../services/tag.service';
@@ -18,6 +18,9 @@ export class TransactionsListComponent implements OnInit {
   transactions: Transaction[];
   tags: Tag[];
   selectedTransaction: Transaction;
+  expandedCommentTransaction: Transaction;
+  commentEdited: boolean = false;
+  commentText: string;
 
   constructor(private tagService: TagService, private transactionService: TransactionService) {
   }
@@ -36,17 +39,22 @@ export class TransactionsListComponent implements OnInit {
     this.selectedTransaction = this.selectedTransaction === transaction ? null : transaction;
   }
 
-  removeTagFromTransaction(tagName: string, transactionId: number) {
-    this.transactionService.removeTagFromTransaction(transactionId, tagName).subscribe();
+  commentIconClicked(transaction: Transaction) {
+    this.expandedCommentTransaction = transaction;
+
+    if (!transaction.comment) {
+      this.editCommentRequested(transaction);
+    }
   }
 
-  addNewTagTotransaction(inputElement: any, transactionId: number) {
-    const tagName = inputElement.value;
+  commentIconHovered(transaction: Transaction) {
+    if (transaction.comment) {
+      this.expandedCommentTransaction = transaction;
+    }
+  }
 
-    this.tagService.createTag(inputElement.value, 'gray')
-    .mergeMap(() => this.transactionService.addTagToTransaction(transactionId, tagName))
-    .subscribe();
-    inputElement.value = null;
+  removeTagFromTransaction(tagName: string, transactionId: number) {
+    this.transactionService.removeTagFromTransaction(transactionId, tagName).subscribe();
   }
 
   isTagForbidden(tag: Tag, transaction: Transaction) {
@@ -54,11 +62,28 @@ export class TransactionsListComponent implements OnInit {
     return false;
   }
 
-  changeTagColor(color: string, tagName: string) {
-    this.tagService.changeTagColor(tagName, color).subscribe();
-  }
-
   toggleIgnored(transaction: Transaction) {
     this.transactionIgnoreValueChanged.emit(transaction);
+  }
+
+  closeComment() {
+    this.expandedCommentTransaction = null;
+    this.commentEdited = false;
+    this.commentText = null;
+  }
+
+  editCommentRequested(transaction: Transaction) {
+    this.commentEdited = true;
+    this.commentText = transaction.comment;
+  }
+
+  onCommentEdited(transaction: Transaction) {
+    this.transactionService.editComment(transaction.id, this.commentText).subscribe();
+    this.closeComment();
+  }
+
+  removeComment(transaction: Transaction) {
+    this.transactionService.removeComment(transaction.id).subscribe();
+    this.closeComment();
   }
 }

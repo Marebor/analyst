@@ -19,24 +19,15 @@ td {
   background-color: lightblue;
 }
 
-.tag-input-wrapper {
-  width: 30%;
-  display: inline-flex;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.tag-input {
-  display: inline-block;
-  margin-right: 20px;
+.comment-icon {
+  cursor: pointer;
+  width: 26px;
 }
 
 .tags {
   width: 65%;
   display: inline-flex;
   flex-wrap: wrap;
-  margin-left: 30%;
 }
 
 .ignore-transaction {
@@ -55,4 +46,70 @@ td {
 
 .text-wrap {
   word-wrap: break-word;
+}
+
+.comment {
+  position: relative;
+  color: white;
+  padding: 5px;
+  font-size: 16px;
+}
+
+.comment-tooltip {
+  z-index: 100;
+  position: absolute;
+  background-color: black;
+  color: white;
+  top: 0;
+  padding: 5px 5px 5px 15px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.comment-tooltip.left {
+  left: 0;
+  transform: translateX(-100%) translateY(-3px);
+}
+
+.comment-tooltip.right {
+  right: 0;
+  transform: translateX(101%) translateY(-3px);
+}
+
+.comment-tooltip::after {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  /* margin-left: -5px; */
+  border-width: 5px;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+}
+
+.comment-tooltip.left::after {
+  right: 0;
+  transform: translate(9px, -5px) rotate(-90deg);
+}
+
+.comment-tooltip.right::after {
+  left: -15px;
+  transform: translate(5px, -5px) rotate(90deg);
+}
+
+.edit-comment-button {
+  color: white;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.remove-comment-button {
+  color: orangered;
+  font-size: 12px;
+  font-style: italic;
+  font-weight:  bold;
+}
+
+.comment-input {
+  width: auto;
 }

@@ -101,6 +101,13 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  addNewTag(inputElement: any) {
+    this.tagService.createTag(inputElement.value, 'gray')
+    .mergeMap(() => this.tagService.getTags())
+    .subscribe(tags => this.tags = tags);
+    inputElement.value = null;
+  }
+
   changeTagColor(color: string, tagName: string) {
     this.tagService.changeTagColor(tagName, color).subscribe();
   }
@@ -129,17 +136,19 @@ export class DashboardComponent implements OnInit {
 
   private onBrowsingDataFetched(browsingData: IBrowsingData) {
     this.browsingData = browsingData;
-    this.mapTags();
+    this.mapTransactions();
     this.publishData();
   }
 
-  private mapTags() {
+  private mapTransactions() {
     this.browsingData.transactions.forEach(t => {
       if (!t.transaction.tags) {
         t.transaction.tags = [];
         const tags = t.tags.map(tagName => this.tags.find(tag => tag.name === tagName));
         t.transaction.tags.push(...tags);
       }
+
+      t.transaction.comment = t.comment;
     });
   }
 

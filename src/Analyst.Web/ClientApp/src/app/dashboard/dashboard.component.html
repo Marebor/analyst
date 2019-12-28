@@ -28,6 +28,10 @@
       <div class="tab" [class.selected]="activeTab === 'Transakcje'" (click)="activeTab = 'Transakcje'">Transakcje</div>
       <div class="tab" [class.selected]="activeTab === 'Filtry'" (click)="activeTab = 'Filtry'">Filtry</div>
     </div>
+    <div class="new-tag">
+      <input type="text" class="form-control form-control-sm tag-input" placeholder="Nowy tag..."
+        (keyup.enter)="addNewTag(tagNameInput)" #tagNameInput/>
+    </div>
     <div class="available-tags">
       <app-tag *ngFor="let tag of tags" [tag]="tag" [tooltipDebounceTime]="1000" [allowChangeColor]="true" [allowDelete]="true"
       (click)="tagClicked(tag)" (colorChangeRequested)="changeTagColor($event, tag.name)"

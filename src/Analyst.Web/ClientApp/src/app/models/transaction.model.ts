@@ -10,4 +10,5 @@ export interface Transaction {
   endingBalance: number,
   tags: Tag[],
   ignored: boolean,
+  comment: string,
 }

@@ -3,9 +3,10 @@
     <tr>
       <th scope="col" style="width: 7em">Data</th>
       <th scope="col" style="width: 8%">Typ</th>
-      <th scope="col" style="width: 47%">Opis</th>
+      <th scope="col" style="width: 55%">Opis</th>
       <th scope="col" style="width: 6em">Kwota</th>
-      <th scope="col" style="width: 25%"></th>
+      <th scope="col" style="width: 5%"></th>
+      <th scope="col" style="width: 12%"></th>
       <th scope="col" style="width: 5%"></th>
     </tr>
   </thead>
@@ -17,12 +18,32 @@
       <td class="text-wrap">{{ transaction.description }}</td>
       <td [class.text-danger]="transaction.amount < 0">{{ transaction.amount | number:'1.2-2' }}</td>
       <td>
-        <div class="tag-input-wrapper">
-          <input type="text" class="form-control form-control-sm tag-input" (keyup.enter)="addNewTagTotransaction(tagNameInput, transaction.id)" #tagNameInput/>
-        </div>
+        <span class="comment" (mouseleave)="closeComment()">
+          <img class="comment-icon" 
+          [src]="transaction.comment ? '/assets/icons/comment-filled.png' : '/assets/icons/comment-empty.png'" 
+          (click)="commentIconClicked(transaction); $event.stopPropagation()"
+          (mouseenter)="commentIconHovered(transaction)" />
+          <div *ngIf="expandedCommentTransaction === transaction" class="comment-tooltip left"
+          (click)="$event.stopPropagation()">
+            <div *ngIf="!commentEdited; else commentEditMode">
+              {{ transaction.comment }}
+              <button class="btn btn-link edit-comment-button" (click)="editCommentRequested(transaction)">Edytuj</button>
+              <button class="btn btn-link remove-comment-button" (click)="removeComment(transaction)">Usuń</button>
+            </div>
+            <ng-template #commentEditMode>
+              <form #commentForm="ngForm">
+                <input type="text" class="form-control form-control-sm comment-input" autofocus autocomplete="off"
+                id="commentInput" name="commentInput" #commentInput="ngModel" [(ngModel)]="commentText"
+                (keyup.enter)="onCommentEdited(transaction)" />
+              </form>
+            </ng-template>
+          </div>
+        </span>
+      </td>
+      <td>
         <div class="tags">
-          <app-tag *ngFor="let tag of transaction.tags" [tag]="tag" [forbidden]="isTagForbidden(tag, transaction)" [allowChangeColor]="true" [allowDelete]="true"
-          (colorChangeRequested)="changeTagColor($event, tag.name)" (removalRequested)="removeTagFromTransaction(tag.name, transaction.id)"></app-tag>
+          <app-tag *ngFor="let tag of transaction.tags" [tag]="tag" [forbidden]="isTagForbidden(tag, transaction)" [allowChangeColor]="false" [allowDelete]="true"
+          (removalRequested)="removeTagFromTransaction(tag.name, transaction.id)"></app-tag>
         </div>
       </td>
       <td>

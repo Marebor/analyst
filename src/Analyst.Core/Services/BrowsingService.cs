@@ -26,7 +26,7 @@ namespace Analyst.Core.Services
             var filters = await filterStore.Query(q => q);
             var assignments = await tagAssignmentStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
             var suppressions = await tagSuppressionStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
-            var comments = await commentStore.Query(q => q.Where(a => transactions.Any(c => a.TransactionId == c.Id)));
+            var comments = await commentStore.Query(q => q.Where(c => transactions.Any(t => c.TransactionId == t.Id)));
 
             var transactionsPerTag = new Dictionary<string, HashSet<Transaction>>();
 
@@ -38,7 +38,7 @@ namespace Analyst.Core.Services
                     .Select(t => new TransactionReadModel(t, transactionsPerTag
                         .Where(kvp => kvp.Value.Any(v => v.Id == t.Id))
                         .Select(kvp => kvp.Key),
-                        comments.SingleOrDefault()?.Text))
+                        comments.SingleOrDefault(c => c.TransactionId == t.Id)?.Text))
                     .ToArray(),
                 transactionsPerTag
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value
