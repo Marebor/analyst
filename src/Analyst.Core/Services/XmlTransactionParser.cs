@@ -13,12 +13,14 @@ namespace Analyst.Core.Services
         {
             XDocument xml = XDocument.Load(stream);
 
+            var accountNumber = xml.Root.Element("search").Element("account").Value;
             var xmlTransactions = xml.Root.Element("operations").Elements("operation");
 
             foreach (var xmlTransaction in xmlTransactions)
             {
                 yield return new Transaction
                 {
+                    AccountNumber = accountNumber,
                     OrderDate = DateTime.Parse(xmlTransaction.Element("order-date").Value, CultureInfo.InvariantCulture),
                     ExecutionDate = DateTime.Parse(xmlTransaction.Element("exec-date").Value, CultureInfo.InvariantCulture),
                     Type = xmlTransaction.Element("type").Value,

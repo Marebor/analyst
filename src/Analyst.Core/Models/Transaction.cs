@@ -12,5 +12,6 @@ namespace Analyst.Core.Models
         public decimal Amount { get; set; }
         public decimal EndingBalance { get; set; }
         public bool Ignored { get; set; }
+        public string AccountNumber { get; set; }
     }
 }

@@ -43,6 +43,7 @@ namespace Analyst.Web
             services.AddScoped<IStore<Filter>, Store>();
             services.AddScoped<IStore<TagAssignment>, Store>();
             services.AddScoped<IStore<TagSuppression>, Store>();
+            services.AddScoped<IStore<Comment>, Store>();
             services.AddScoped<BrowsingService>();
             services.AddScoped<TransactionService>();
             services.AddScoped<TagService>();

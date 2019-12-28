@@ -14,13 +14,15 @@ namespace Analyst.Core.Services
         TagService tagService;
         IStore<TagAssignment> tagAssignmentStore;
         IStore<TagSuppression> tagSuppressionStore;
+        IStore<Comment> commentStore;
 
-        public TransactionService(IStore<Transaction> transactionStore, TagService tagService, IStore<TagAssignment> tagAssignmentStore, IStore<TagSuppression> tagSuppressionStore)
+        public TransactionService(IStore<Transaction> transactionStore, TagService tagService, IStore<TagAssignment> tagAssignmentStore, IStore<TagSuppression> tagSuppressionStore, IStore<Comment> commentStore)
         {
             this.transactionStore = transactionStore;
             this.tagService = tagService;
             this.tagAssignmentStore = tagAssignmentStore;
             this.tagSuppressionStore = tagSuppressionStore;
+            this.commentStore = commentStore;
         }
 
         public async Task<IEnumerable<Transaction>> SaveTransactionsFromXml(Stream xml)
@@ -102,6 +104,38 @@ namespace Analyst.Core.Services
             transaction.Ignored = newValue;
 
             await transactionStore.Save(transaction);
+        }
+
+        public async Task EditComment(int transactionId, string text)
+        {
+            var comment = (await commentStore.Query(q => q.Where(c => c.TransactionId == transactionId))).SingleOrDefault();
+
+            if (comment == null)
+            {
+                comment = new Comment
+                {
+                    TransactionId = transactionId,
+                    Text = text,
+                };
+
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    await commentStore.Save(comment);
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    comment.Text = text;
+
+                    await commentStore.Save(comment);
+                }
+                else
+                {
+                    await commentStore.Delete(comment);
+                }
+            }
         }
     }
 }

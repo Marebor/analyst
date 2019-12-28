@@ -8,25 +8,25 @@ namespace Analyst.Core.Services
 {
     public class BrowsingService
     {
-        IStore<Transaction> transactionStore;
         IStore<Filter> filterStore;
         IStore<TagAssignment> tagAssignmentStore;
         IStore<TagSuppression> tagSuppressionStore;
+        IStore<Comment> commentStore;
 
-        public BrowsingService(IStore<Transaction> transactionStore, IStore<Filter> filterStore, IStore<TagAssignment> tagAssignmentStore, IStore<TagSuppression> tagSuppressionStore)
+        public BrowsingService(IStore<Filter> filterStore, IStore<TagAssignment> tagAssignmentStore, IStore<TagSuppression> tagSuppressionStore, IStore<Comment> commentStore)
         {
-            this.transactionStore = transactionStore;
             this.filterStore = filterStore;
             this.tagAssignmentStore = tagAssignmentStore;
             this.tagSuppressionStore = tagSuppressionStore;
+            this.commentStore = commentStore;
         }
 
         public async Task<BrowsingData> Browse(IEnumerable<Transaction> transactions)
         {
-
             var filters = await filterStore.Query(q => q);
             var assignments = await tagAssignmentStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
             var suppressions = await tagSuppressionStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
+            var comments = await commentStore.Query(q => q.Where(a => transactions.Any(c => a.TransactionId == c.Id)));
 
             var transactionsPerTag = new Dictionary<string, HashSet<Transaction>>();
 
@@ -35,9 +35,10 @@ namespace Analyst.Core.Services
 
             return new BrowsingData(
                 transactions
-                    .Select(t => new TransactionWithTags(t, transactionsPerTag
+                    .Select(t => new TransactionReadModel(t, transactionsPerTag
                         .Where(kvp => kvp.Value.Any(v => v.Id == t.Id))
-                        .Select(kvp => kvp.Key)))
+                        .Select(kvp => kvp.Key),
+                        comments.SingleOrDefault()?.Text))
                     .ToArray(),
                 transactionsPerTag
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value

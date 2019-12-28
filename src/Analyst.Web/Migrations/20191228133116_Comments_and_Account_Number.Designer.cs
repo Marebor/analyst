@@ -3,14 +3,16 @@ using System;
 using Analyst.Web.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Analyst.Web.Migrations
 {
     [DbContext(typeof(AnalystDbContext))]
-    partial class AnalystDbContextModelSnapshot : ModelSnapshot
+    [Migration("20191228133116_Comments_and_Account_Number")]
+    partial class Comments_and_Account_Number
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

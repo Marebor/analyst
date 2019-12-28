@@ -12,6 +12,7 @@ namespace Analyst.Web.Infrastructure
         public DbSet<Filter> Filters { get; set; }
         public DbSet<TagAssignment> TagAssignments { get; set; }
         public DbSet<TagSuppression> TagSuppressions { get; set; }
+        public DbSet<Comment> Comments { get; set; }
 
         public AnalystDbContext(DbContextOptions options) : base(options) { }
 
@@ -37,6 +38,9 @@ namespace Analyst.Web.Infrastructure
 
             modelBuilder.Entity<TagSuppression>().ToTable("TagSuppressions");
             modelBuilder.Entity<TagSuppression>().HasKey(x => new { x.TagName, x.TransactionId });
+
+            modelBuilder.Entity<Comment>().ToTable("Comments");
+            modelBuilder.Entity<Comment>().HasKey(x => new { x.TransactionId });
         }
     }
 }

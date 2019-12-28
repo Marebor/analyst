@@ -17,14 +17,12 @@ namespace Analyst.Web.Controllers
         private readonly BrowsingService browsingService;
         private readonly TransactionService transactionService;
         private readonly IStore<Transaction> transactionStore;
-        private readonly IStore<Tag> tagStore;
 
-        public TransactionsController(BrowsingService browsingService, TransactionService transactionService, IStore<Transaction> transactionStore, IStore<Tag> tagStore)
+        public TransactionsController(BrowsingService browsingService, TransactionService transactionService, IStore<Transaction> transactionStore)
         {
             this.browsingService = browsingService;
             this.transactionService = transactionService;
             this.transactionStore = transactionStore;
-            this.tagStore = tagStore;
         }
 
         [HttpGet("browse")]
@@ -53,6 +51,14 @@ namespace Analyst.Web.Controllers
         public async Task<IActionResult> AddTag(int transactionId, [FromBody] string tagName)
         {
             await transactionService.AddTagToTransaction(transactionId, tagName);
+
+            return Ok();
+        }
+
+        [HttpPost("{transactionId}/comment")]
+        public async Task<IActionResult> EditComment(int transactionId, [FromBody] string text)
+        {
+            await transactionService.EditComment(transactionId, text);
 
             return Ok();
         }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Analyst.Web.Infrastructure
 {
-    public class Store : IStore<Transaction>, IStore<Tag>, IStore<Filter>, IStore<TagAssignment>, IStore<TagSuppression>
+    public class Store : IStore<Transaction>, IStore<Tag>, IStore<Filter>, IStore<TagAssignment>, IStore<TagSuppression>, IStore<Comment>
     {
         private readonly AnalystDbContext dbContext;
 
@@ -32,6 +32,9 @@ namespace Analyst.Web.Infrastructure
         public Task Delete(TagSuppression entity)
             => SaveChanges(() => dbContext.TagSuppressions.Remove(entity));
 
+        public Task Delete(Comment entity)
+            => SaveChanges(() => dbContext.Comments.Remove(entity));
+
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Transaction>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Transactions));
 
@@ -46,6 +49,9 @@ namespace Analyst.Web.Infrastructure
 
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<TagSuppression>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.TagSuppressions));
+
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Comment>, IQueryable<TOut>> filter)
+            => Query(filter(dbContext.Comments));
 
         public Task<Transaction> Save(Transaction entity)
             => SaveEntity(entity, dbContext.Transactions);
@@ -62,6 +68,9 @@ namespace Analyst.Web.Infrastructure
         public Task<TagSuppression> Save(TagSuppression entity)
             => SaveEntity(entity, dbContext.TagSuppressions);
 
+        public Task<Comment> Save(Comment entity)
+            => SaveEntity(entity, dbContext.Comments);
+
         public Task<IEnumerable<Transaction>> Save(IEnumerable<Transaction> entities)
             => SaveEntities(entities, dbContext.Transactions);
 
@@ -76,6 +85,9 @@ namespace Analyst.Web.Infrastructure
 
         public Task<IEnumerable<TagSuppression>> Save(IEnumerable<TagSuppression> entities)
             => SaveEntities(entities, dbContext.TagSuppressions);
+
+        public Task<IEnumerable<Comment>> Save(IEnumerable<Comment> entities)
+            => SaveEntities(entities, dbContext.Comments);
 
         private async Task<T> SaveEntity<T>(T entity, DbSet<T> set, bool saveChanges = true) where T : class
         {
