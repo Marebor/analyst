@@ -11,6 +11,7 @@ namespace Analyst.Core.Models
         public string Description { get; set; }
         public decimal Amount { get; set; }
         public decimal EndingBalance { get; set; }
+        [Obsolete]
         public bool Ignored { get; set; }
         public string AccountNumber { get; set; }
     }

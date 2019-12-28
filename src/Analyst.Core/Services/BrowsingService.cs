@@ -12,13 +12,20 @@ namespace Analyst.Core.Services
         IStore<TagAssignment> tagAssignmentStore;
         IStore<TagSuppression> tagSuppressionStore;
         IStore<Comment> commentStore;
+        IStore<TransactionIgnore> ignoredTransactionsStore;
 
-        public BrowsingService(IStore<Filter> filterStore, IStore<TagAssignment> tagAssignmentStore, IStore<TagSuppression> tagSuppressionStore, IStore<Comment> commentStore)
+        public BrowsingService(
+            IStore<Filter> filterStore, 
+            IStore<TagAssignment> tagAssignmentStore, 
+            IStore<TagSuppression> tagSuppressionStore, 
+            IStore<Comment> commentStore,
+            IStore<TransactionIgnore> ignoredTransactionsStore)
         {
             this.filterStore = filterStore;
             this.tagAssignmentStore = tagAssignmentStore;
             this.tagSuppressionStore = tagSuppressionStore;
             this.commentStore = commentStore;
+            this.ignoredTransactionsStore = ignoredTransactionsStore;
         }
 
         public async Task<BrowsingData> Browse(IEnumerable<Transaction> transactions)
@@ -27,6 +34,7 @@ namespace Analyst.Core.Services
             var assignments = await tagAssignmentStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
             var suppressions = await tagSuppressionStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
             var comments = await commentStore.Query(q => q.Where(c => transactions.Any(t => c.TransactionId == t.Id)));
+            var ignoredTransactions = await ignoredTransactionsStore.Query(q => q.Where(c => transactions.Any(t => c.TransactionId == t.Id)));
 
             var transactionsPerTag = new Dictionary<string, HashSet<Transaction>>();
 
@@ -38,17 +46,18 @@ namespace Analyst.Core.Services
                     .Select(t => new TransactionReadModel(t, transactionsPerTag
                         .Where(kvp => kvp.Value.Any(v => v.Id == t.Id))
                         .Select(kvp => kvp.Key),
-                        comments.SingleOrDefault(c => c.TransactionId == t.Id)?.Text))
+                        comments.SingleOrDefault(c => c.TransactionId == t.Id)?.Text,
+                        t.Ignored || ignoredTransactions.Any(it => it.TransactionId == t.Id)))
                     .ToArray(),
                 transactionsPerTag
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value
                         .Where(t => t.Amount < 0)
-                        .Where(t => !t.Ignored)
+                        .Where(t => !t.Ignored && !ignoredTransactions.Any(it => it.TransactionId == t.Id))
                         .Sum(t => -t.Amount)),
                 transactions
                     .Where(t => !transactionsPerTag.SelectMany(kvp => kvp.Value).Any(v => t.Id == v.Id))
                     .Where(t => t.Amount < 0)
-                    .Where(t => !t.Ignored)
+                    .Where(t => !t.Ignored && !ignoredTransactions.Any(it => it.TransactionId == t.Id))
                     .Sum(t => -t.Amount));
         }
 

@@ -15,14 +15,22 @@ namespace Analyst.Core.Services
         IStore<TagAssignment> tagAssignmentStore;
         IStore<TagSuppression> tagSuppressionStore;
         IStore<Comment> commentStore;
+        IStore<TransactionIgnore> ignoredTransactionsStore;
 
-        public TransactionService(IStore<Transaction> transactionStore, TagService tagService, IStore<TagAssignment> tagAssignmentStore, IStore<TagSuppression> tagSuppressionStore, IStore<Comment> commentStore)
+        public TransactionService(
+            IStore<Transaction> transactionStore, 
+            TagService tagService, 
+            IStore<TagAssignment> tagAssignmentStore, 
+            IStore<TagSuppression> tagSuppressionStore, 
+            IStore<Comment> commentStore,
+            IStore<TransactionIgnore> ignoredTransactionsStore)
         {
             this.transactionStore = transactionStore;
             this.tagService = tagService;
             this.tagAssignmentStore = tagAssignmentStore;
             this.tagSuppressionStore = tagSuppressionStore;
             this.commentStore = commentStore;
+            this.ignoredTransactionsStore = ignoredTransactionsStore;
         }
 
         public async Task<IEnumerable<Transaction>> SaveTransactionsFromXml(Stream xml)
@@ -101,9 +109,22 @@ namespace Analyst.Core.Services
                 throw new Exception($"Transaction with id = {transactionId} does not exist.");
             }
 
-            transaction.Ignored = newValue;
+            var ignore = (await ignoredTransactionsStore.Query(q => q.Where(t => t.TransactionId == transactionId))).SingleOrDefault();
 
-            await transactionStore.Save(transaction);
+            if (newValue == true && ignore == null)
+            {
+                await ignoredTransactionsStore.Save(new TransactionIgnore { TransactionId = transactionId });
+            }
+            else if (newValue == false && ignore != null)
+            {
+                await ignoredTransactionsStore.Delete(ignore);
+            }
+            else if (transaction.Ignored)
+            {
+                transaction.Ignored = newValue;
+
+                await transactionStore.Save(transaction);
+            }
         }
 
         public async Task EditComment(int transactionId, string text)

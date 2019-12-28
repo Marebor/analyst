@@ -7,5 +7,6 @@ export interface IBrowsingData {
         transaction: Transaction, 
         tags: string[],
         comment: string,
+        ignored: boolean,
     }[]
 }

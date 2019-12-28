@@ -38,8 +38,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     const today = new Date();
-    const days = 14;
-    this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
+    this.dateRange = { to: new Date(), from: new Date(today.setDate(1)) };
 
     this.refresh();
 
@@ -149,6 +148,7 @@ export class DashboardComponent implements OnInit {
       }
 
       t.transaction.comment = t.comment;
+      t.transaction.ignored = t.ignored;
     });
   }
 

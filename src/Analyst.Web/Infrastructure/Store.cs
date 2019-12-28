@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Analyst.Web.Infrastructure
 {
-    public class Store : IStore<Transaction>, IStore<Tag>, IStore<Filter>, IStore<TagAssignment>, IStore<TagSuppression>, IStore<Comment>
+    public class Store : IStore<Transaction>, IStore<Tag>, IStore<Filter>, IStore<TagAssignment>, IStore<TagSuppression>, IStore<Comment>, IStore<TransactionIgnore>
     {
         private readonly AnalystDbContext dbContext;
 
@@ -35,6 +35,9 @@ namespace Analyst.Web.Infrastructure
         public Task Delete(Comment entity)
             => SaveChanges(() => dbContext.Comments.Remove(entity));
 
+        public Task Delete(TransactionIgnore entity)
+            => SaveChanges(() => dbContext.IgnoredTransactions.Remove(entity));
+
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Transaction>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Transactions));
 
@@ -52,6 +55,9 @@ namespace Analyst.Web.Infrastructure
 
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Comment>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Comments));
+
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<TransactionIgnore>, IQueryable<TOut>> filter)
+            => Query(filter(dbContext.IgnoredTransactions));
 
         public Task<Transaction> Save(Transaction entity)
             => SaveEntity(entity, dbContext.Transactions);
@@ -71,6 +77,9 @@ namespace Analyst.Web.Infrastructure
         public Task<Comment> Save(Comment entity)
             => SaveEntity(entity, dbContext.Comments);
 
+        public Task<TransactionIgnore> Save(TransactionIgnore entity)
+            => SaveEntity(entity, dbContext.IgnoredTransactions);
+
         public Task<IEnumerable<Transaction>> Save(IEnumerable<Transaction> entities)
             => SaveEntities(entities, dbContext.Transactions);
 
@@ -88,6 +97,9 @@ namespace Analyst.Web.Infrastructure
 
         public Task<IEnumerable<Comment>> Save(IEnumerable<Comment> entities)
             => SaveEntities(entities, dbContext.Comments);
+
+        public Task<IEnumerable<TransactionIgnore>> Save(IEnumerable<TransactionIgnore> entities)
+            => SaveEntities(entities, dbContext.IgnoredTransactions);
 
         private async Task<T> SaveEntity<T>(T entity, DbSet<T> set, bool saveChanges = true) where T : class
         {
