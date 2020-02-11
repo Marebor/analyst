@@ -16,7 +16,6 @@ export class TagComponent {
   @Input() allowChangeColor: boolean;
   @Input() rounded: boolean = true;
   @Output() removalRequested: EventEmitter<void> = new EventEmitter<void>();
-  @ViewChild('tagColorInput') tagColorInput: HTMLInputElement;
   showTooltip: boolean;
   changingTagColor: boolean;
 
@@ -53,9 +52,8 @@ export class TagComponent {
 
   }
   
-  onColorChangeRequested(tagColorInput: any) {
-    this.tagService.changeTagColor(this.tag.name, tagColorInput.value).subscribe();
-    tagColorInput.value = null;
+  onColorChangeRequested(newColor: string) {
+    this.tagService.changeTagColor(this.tag.name, newColor).subscribe();
     this.changingTagColor = false;
     this.showTooltip = false;
   }
