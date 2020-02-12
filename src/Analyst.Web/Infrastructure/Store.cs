@@ -8,7 +8,15 @@ using System.Threading.Tasks;
 
 namespace Analyst.Web.Infrastructure
 {
-    public class Store : IStore<Transaction>, IStore<Tag>, IStore<Filter>, IStore<TagAssignment>, IStore<TagSuppression>, IStore<Comment>, IStore<TransactionIgnore>
+    public class Store : 
+        IStore<Transaction>, 
+        IStore<Tag>, 
+        IStore<Filter>, 
+        IStore<TagAssignment>, 
+        IStore<TagSuppression>, 
+        IStore<Comment>, 
+        IStore<TransactionIgnore>,
+        IStore<Account>
     {
         private readonly AnalystDbContext dbContext;
 
@@ -38,6 +46,9 @@ namespace Analyst.Web.Infrastructure
         public Task Delete(TransactionIgnore entity)
             => SaveChanges(() => dbContext.IgnoredTransactions.Remove(entity));
 
+        public Task Delete(Account entity)
+            => SaveChanges(() => dbContext.Accounts.Remove(entity));
+
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Transaction>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Transactions));
 
@@ -58,6 +69,9 @@ namespace Analyst.Web.Infrastructure
 
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<TransactionIgnore>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.IgnoredTransactions));
+
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Account>, IQueryable<TOut>> filter)
+            => Query(filter(dbContext.Accounts));
 
         public Task<Transaction> Save(Transaction entity)
             => SaveEntity(entity, dbContext.Transactions);
@@ -80,6 +94,9 @@ namespace Analyst.Web.Infrastructure
         public Task<TransactionIgnore> Save(TransactionIgnore entity)
             => SaveEntity(entity, dbContext.IgnoredTransactions);
 
+        public Task<Account> Save(Account entity)
+            => SaveEntity(entity, dbContext.Accounts);
+
         public Task<IEnumerable<Transaction>> Save(IEnumerable<Transaction> entities)
             => SaveEntities(entities, dbContext.Transactions);
 
@@ -100,6 +117,9 @@ namespace Analyst.Web.Infrastructure
 
         public Task<IEnumerable<TransactionIgnore>> Save(IEnumerable<TransactionIgnore> entities)
             => SaveEntities(entities, dbContext.IgnoredTransactions);
+
+        public Task<IEnumerable<Account>> Save(IEnumerable<Account> entities)
+            => SaveEntities(entities, dbContext.Accounts);
 
         private async Task<T> SaveEntity<T>(T entity, DbSet<T> set, bool saveChanges = true) where T : class
         {

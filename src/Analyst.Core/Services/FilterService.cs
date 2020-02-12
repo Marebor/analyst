@@ -1,4 +1,5 @@
-﻿using Analyst.Core.Models;
+﻿using Analyst.Core.DomainMessages;
+using Analyst.Core.Models;
 using Analyst.Core.Services.Abstract;
 using System;
 using System.Collections.Generic;
@@ -8,14 +9,17 @@ using System.Threading.Tasks;
 namespace Analyst.Core.Services
 {
     public class FilterService
+        : IHandle<TransactionsSaved>
     {
         IStore<Filter> filterStore;
         TagService tagService;
+        MessageBus messageBus;
 
-        public FilterService(IStore<Filter> filterStore, TagService tagService)
+        public FilterService(IStore<Filter> filterStore, TagService tagService, MessageBus messageBus)
         {
             this.filterStore = filterStore;
             this.tagService = tagService;
+            this.messageBus = messageBus;
         }
 
         public async Task<Filter> CreateFilter(Filter filter)
@@ -79,6 +83,18 @@ namespace Analyst.Core.Services
             }
             
             await filterStore.Delete(filterEntity);
+        }
+
+        async Task IHandle<TransactionsSaved>.Handle(TransactionsSaved message)
+        {
+            var filtersWithIgnoreTag = await filterStore.Query(q => q.Where(f => f.TagNamesIfTrue.Contains("IGNORE")));
+
+            var transactionsToIgnore = filtersWithIgnoreTag
+                .SelectMany(f => f.Apply(message.Transactions))
+                .Select(t => t.Id)
+                .Distinct();
+
+            await messageBus.Publish(new IgnoreTransactions(transactionsToIgnore));
         }
     }
 }

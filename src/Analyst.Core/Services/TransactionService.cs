@@ -1,4 +1,5 @@
-﻿using Analyst.Core.Models;
+﻿using Analyst.Core.DomainMessages;
+using Analyst.Core.Models;
 using Analyst.Core.Services.Abstract;
 using System;
 using System.Collections.Generic;
@@ -8,10 +9,12 @@ using System.Threading.Tasks;
 
 namespace Analyst.Core.Services
 {
-    public class TransactionService
+    public class TransactionService :
+        IHandle<IgnoreTransactions>
     {
         IStore<Transaction> transactionStore;
         TagService tagService;
+        MessageBus messageBus;
         IStore<TagAssignment> tagAssignmentStore;
         IStore<TagSuppression> tagSuppressionStore;
         IStore<Comment> commentStore;
@@ -20,6 +23,7 @@ namespace Analyst.Core.Services
         public TransactionService(
             IStore<Transaction> transactionStore, 
             TagService tagService, 
+            MessageBus messageBus,
             IStore<TagAssignment> tagAssignmentStore, 
             IStore<TagSuppression> tagSuppressionStore, 
             IStore<Comment> commentStore,
@@ -27,6 +31,7 @@ namespace Analyst.Core.Services
         {
             this.transactionStore = transactionStore;
             this.tagService = tagService;
+            this.messageBus = messageBus;
             this.tagAssignmentStore = tagAssignmentStore;
             this.tagSuppressionStore = tagSuppressionStore;
             this.commentStore = commentStore;
@@ -43,6 +48,8 @@ namespace Analyst.Core.Services
                 .ToList();
 
             await transactionStore.Save(transactionsToSave);
+
+            await messageBus.Publish(new TransactionsSaved(transactionsToSave));
 
             return transactionsToSave;
         }
@@ -157,6 +164,11 @@ namespace Analyst.Core.Services
                     await commentStore.Delete(comment);
                 }
             }
+        }
+
+        async Task IHandle<IgnoreTransactions>.Handle(IgnoreTransactions message)
+        {
+            await Task.WhenAll(message.TransactionsIds.Select(id => SetIgnoredValue(id, true)));
         }
     }
 }

@@ -69,7 +69,7 @@ namespace Analyst.Core.Services
         {
             foreach (var filter in filters)
             {
-                var filteredTransactions = transactions.Where(t => filter.Keywords.Any(kw => t.Description.ToLowerInvariant().Contains(kw.ToLowerInvariant())));
+                var filteredTransactions = filter.Apply(transactions);
 
                 foreach (var transaction in filteredTransactions)
                 {

@@ -1,3 +1,4 @@
+using Analyst.Core.DomainMessages;
 using Analyst.Core.Models;
 using Analyst.Core.Services;
 using Analyst.Core.Services.Abstract;
@@ -10,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Analyst.Web
 {
@@ -45,10 +48,16 @@ namespace Analyst.Web
             services.AddScoped<IStore<TagSuppression>, Store>();
             services.AddScoped<IStore<Comment>, Store>();
             services.AddScoped<IStore<TransactionIgnore>, Store>();
+            services.AddScoped<IStore<Account>, Store>();
+            services.AddScoped<MessageBus>();
+            services.AddHandlersFactory();
+            services.AddMessageHandlers();
             services.AddScoped<BrowsingService>();
             services.AddScoped<TransactionService>();
             services.AddScoped<TagService>();
             services.AddScoped<FilterService>();
+
+            services.AddLogging();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -92,6 +101,11 @@ namespace Analyst.Web
             if (bool.TryParse(Configuration["SeedDatabase"], out bool seed) && seed)
             {
                 Seeder.SeedDb(db);
+            }
+
+            if (bool.TryParse(Configuration["MigrateTransactionIgnore"], out bool migrate) && migrate)
+            {
+                Migrator.MigrateTransactionIgnore(db);
             }
         }
     }

@@ -14,6 +14,7 @@ namespace Analyst.Web.Infrastructure
         public DbSet<TagSuppression> TagSuppressions { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<TransactionIgnore> IgnoredTransactions { get; set; }
+        public DbSet<Account> Accounts { get; set; }
 
         public AnalystDbContext(DbContextOptions options) : base(options) { }
 
@@ -45,6 +46,9 @@ namespace Analyst.Web.Infrastructure
 
             modelBuilder.Entity<TransactionIgnore>().ToTable("IgnoredTransactions");
             modelBuilder.Entity<TransactionIgnore>().HasKey(x => new { x.TransactionId });
+
+            modelBuilder.Entity<Account>().ToTable("Accounts");
+            modelBuilder.Entity<Account>().HasKey(x => new { x.Number });
         }
     }
 }
