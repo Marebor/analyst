@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, ViewChild, AfterViewInit, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, OnInit, Input } from '@angular/core';
 import { NgbDate } from '@ng-bootstrap/ng-bootstrap/datepicker/ngb-date';
 import * as moment from "moment";
 import { NgbDatepicker, NgbDateStruct } from '@ng-bootstrap/ng-bootstrap';
@@ -10,11 +10,13 @@ import { NgbDatepicker, NgbDateStruct } from '@ng-bootstrap/ng-bootstrap';
 })
 export class DateRangeComponent implements OnInit {
   @ViewChild('dp') datepicker: NgbDatepicker;
+  @Input() displayedDate: Date;
   @Output() dateRangeChange: EventEmitter<{from: Date, to: Date }> = new EventEmitter<{from: Date, to: Date }>();
   hoveredDate: NgbDate;
   fromDate: Date;
   toDate: Date;
   maxDate: NgbDateStruct;
+  displayedMonthAndYear: { year: number, month: number};
 
   ngOnInit() {
     const now = new Date();
@@ -23,7 +25,11 @@ export class DateRangeComponent implements OnInit {
       month: now.getMonth() + 1,
       day: now.getDate(),
     };
-    this.datepicker.navigateTo({ year: this.maxDate.year, month: this.maxDate.month - 1 });
+
+    this.datepicker.navigateTo({
+      year: this.displayedDate.getFullYear(),
+      month: this.displayedDate.getMonth() + 1
+    });
   }
 
   onDateSelection(ngbDate: NgbDate) {

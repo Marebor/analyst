@@ -16,6 +16,7 @@ import { forkJoin } from 'rxjs/observable/forkJoin';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
+  calendarStartDate: Date;
   browsingData: IBrowsingData;
   chartData$: Subject<ChartDataItem[]> = new Subject<ChartDataItem[]>();
   transactionListData$: Subject<Transaction[]> = new Subject<Transaction[]>();
@@ -39,6 +40,8 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     const today = new Date();
     this.dateRange = { to: new Date(), from: new Date(today.setDate(1)) };
+    this.calendarStartDate = new Date(this.dateRange.from)
+    this.calendarStartDate.setMonth(this.calendarStartDate.getMonth() - 1);
 
     this.refresh();
 
@@ -46,11 +49,24 @@ export class DashboardComponent implements OnInit {
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
-    this.dateRange = dateRange;    
+    this.dateRange = dateRange;
+    this.calendarStartDate = new Date(this.dateRange.from)
+    this.calendarStartDate.setMonth(this.calendarStartDate.getMonth() - 1);
     this.browsingService.browse(this.dateRange.from, this.dateRange.to)
       .subscribe(browsingData => this.onBrowsingDataFetched(browsingData));
     this.showCalendar = false;
     this.selectedTag = null;
+  }
+
+  addMonths(value: number) {
+    const startDate = new Date(this.dateRange.from);
+    startDate.setMonth(startDate.getMonth() + value);
+    startDate.setDate(1);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1);
+    endDate.setDate(endDate.getDate() - 1);
+
+    this.onDateRangeChanged({from: startDate, to: endDate});
   }
 
   onFileSelected(file: any) {
