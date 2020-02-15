@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Analyst.Core.Services
 {
     public class FilterService
-        : IHandle<TransactionsSaved>
+        : IHandle<TransactionsUploaded>
     {
         IStore<Filter> filterStore;
         TagService tagService;
@@ -85,7 +85,7 @@ namespace Analyst.Core.Services
             await filterStore.Delete(filterEntity);
         }
 
-        async Task IHandle<TransactionsSaved>.Handle(TransactionsSaved message)
+        async Task IHandle<TransactionsUploaded>.Handle(TransactionsUploaded message)
         {
             var filtersWithIgnoreTag = await filterStore.Query(q => q.Where(f => f.TagNamesIfTrue.Contains("IGNORE")));
 

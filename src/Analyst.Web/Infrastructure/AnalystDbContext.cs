@@ -7,6 +7,7 @@ namespace Analyst.Web.Infrastructure
 {
     public class AnalystDbContext : DbContext
     {
+        public DbSet<TransactionsUpload> TransactionsUploads { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Filter> Filters { get; set; }
@@ -22,6 +23,12 @@ namespace Analyst.Web.Infrastructure
         {
             modelBuilder.Entity<Transaction>().ToTable("Transactions");
             modelBuilder.Entity<Transaction>().Property(x => x.Id).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<TransactionsUpload>().ToTable("TransactionsUploads");
+            modelBuilder.Entity<TransactionsUpload>().HasKey(x => x.Id);
+            modelBuilder.Entity<TransactionsUpload>().Property(x => x.TransactionsIds).HasConversion(
+                x => string.Join(';', x.ToArray()),
+                x => x.Split(';', StringSplitOptions.None).Select(y => int.Parse(y)).ToList());
 
             modelBuilder.Entity<Tag>().ToTable("Tags");
             modelBuilder.Entity<Tag>().HasKey(x => x.Name);

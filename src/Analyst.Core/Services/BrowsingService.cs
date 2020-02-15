@@ -47,17 +47,17 @@ namespace Analyst.Core.Services
                         .Where(kvp => kvp.Value.Any(v => v.Id == t.Id))
                         .Select(kvp => kvp.Key),
                         comments.SingleOrDefault(c => c.TransactionId == t.Id)?.Text,
-                        t.Ignored || ignoredTransactions.Any(it => it.TransactionId == t.Id)))
+                        ignoredTransactions.Any(it => it.TransactionId == t.Id)))
                     .ToArray(),
                 transactionsPerTag
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value
                         .Where(t => t.Amount < 0)
-                        .Where(t => !t.Ignored && !ignoredTransactions.Any(it => it.TransactionId == t.Id))
+                        .Where(t => !ignoredTransactions.Any(it => it.TransactionId == t.Id))
                         .Sum(t => -t.Amount)),
                 transactions
                     .Where(t => !transactionsPerTag.SelectMany(kvp => kvp.Value).Any(v => t.Id == v.Id))
                     .Where(t => t.Amount < 0)
-                    .Where(t => !t.Ignored && !ignoredTransactions.Any(it => it.TransactionId == t.Id))
+                    .Where(t => !ignoredTransactions.Any(it => it.TransactionId == t.Id))
                     .Sum(t => -t.Amount));
         }
 

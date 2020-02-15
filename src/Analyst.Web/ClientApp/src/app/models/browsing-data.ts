@@ -10,3 +10,8 @@ export interface IBrowsingData {
         ignored: boolean,
     }[]
 }
+
+export interface IUploadResult {
+    uploadId: string,
+    data: IBrowsingData,
+}

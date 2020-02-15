@@ -1,6 +1,6 @@
 import { BrowsingService } from './browsing.service';
 import { tap } from 'rxjs/operators/tap';
-import { IBrowsingData } from './../models/browsing-data';
+import { IBrowsingData, IUploadResult } from './../models/browsing-data';
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
@@ -16,11 +16,11 @@ export class TransactionService {
     private browsingService: BrowsingService) {
   }
 
-  addTransactionsFromXml(file: any): Observable<IBrowsingData> {
+  addTransactionsFromXml(file: any): Observable<IUploadResult> {
     const formData = new FormData(); 
     formData.append('file', file, file.name); 
 
-    return this.httpClient.post<IBrowsingData>(`${this.originUrl}api/transactions/xml`, formData);
+    return this.httpClient.post<IUploadResult>(`${this.originUrl}api/transactions/xml`, formData);
   }
 
   addTagToTransaction(transactionId: number, tagName: string): Observable<void> {

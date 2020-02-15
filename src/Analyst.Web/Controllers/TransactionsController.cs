@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,12 +16,24 @@ namespace Analyst.Web.Controllers
         private readonly BrowsingService browsingService;
         private readonly TransactionService transactionService;
         private readonly IStore<Transaction> transactionStore;
+        private readonly IStore<TransactionsUpload> uploadStore;
 
-        public TransactionsController(BrowsingService browsingService, TransactionService transactionService, IStore<Transaction> transactionStore)
+        public TransactionsController(BrowsingService browsingService, TransactionService transactionService, IStore<Transaction> transactionStore, IStore<TransactionsUpload> uploadStore)
         {
             this.browsingService = browsingService;
             this.transactionService = transactionService;
             this.transactionStore = transactionStore;
+            this.uploadStore = uploadStore;
+        }
+
+        [HttpGet("upload/{uploadId}/browse")]
+        public async Task<IActionResult> BrowseTransactionsFromUpload(string uploadId)
+        {
+            var transactionsIds = (await uploadStore.Query(q => q.Where(x => x.Id == uploadId))).SingleOrDefault()?.TransactionsIds;
+
+            var transactions = await transactionStore.Query(q => q.Where(x => transactionsIds.Contains(x.Id)));
+
+            return Ok(await browsingService.Browse(transactions));
         }
 
         [HttpGet("browse")]
@@ -42,9 +53,13 @@ namespace Analyst.Web.Controllers
         public async Task<IActionResult> LoadFromXml()
         {
             Stream file = Request.Form.Files.First().OpenReadStream();
-            IEnumerable<Transaction> newTransactions = await transactionService.SaveTransactionsFromXml(file);
+            var uploadIdAndTransactions = await transactionService.SaveTransactionsFromXml(file);
 
-            return Ok(await browsingService.Browse(newTransactions));
+            return Ok(new
+            {
+                uploadIdAndTransactions.UploadId,
+                Data = await browsingService.Browse(uploadIdAndTransactions.Transactions)
+            });
         }
 
         [HttpPost("{transactionId}/tags")]

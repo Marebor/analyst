@@ -29,4 +29,10 @@ export class BrowsingService {
         }
     );
   }
+
+  browseByUploadId(uploadId: string): Observable<IBrowsingData> {
+    return this.httpClient.get<IBrowsingData>(
+        `${this.originUrl}api/transactions/upload/${uploadId}/browse`
+    );
+  }
 }

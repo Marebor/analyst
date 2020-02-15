@@ -13,6 +13,7 @@ namespace Analyst.Core.Services
         IHandle<IgnoreTransactions>
     {
         IStore<Transaction> transactionStore;
+        IStore<TransactionsUpload> uploadStore;
         TagService tagService;
         MessageBus messageBus;
         IStore<TagAssignment> tagAssignmentStore;
@@ -21,7 +22,8 @@ namespace Analyst.Core.Services
         IStore<TransactionIgnore> ignoredTransactionsStore;
 
         public TransactionService(
-            IStore<Transaction> transactionStore, 
+            IStore<Transaction> transactionStore,
+            IStore<TransactionsUpload> uploadStore,
             TagService tagService, 
             MessageBus messageBus,
             IStore<TagAssignment> tagAssignmentStore, 
@@ -30,6 +32,7 @@ namespace Analyst.Core.Services
             IStore<TransactionIgnore> ignoredTransactionsStore)
         {
             this.transactionStore = transactionStore;
+            this.uploadStore = uploadStore;
             this.tagService = tagService;
             this.messageBus = messageBus;
             this.tagAssignmentStore = tagAssignmentStore;
@@ -38,20 +41,24 @@ namespace Analyst.Core.Services
             this.ignoredTransactionsStore = ignoredTransactionsStore;
         }
 
-        public async Task<IEnumerable<Transaction>> SaveTransactionsFromXml(Stream xml)
+        public async Task<(string UploadId, IEnumerable<Transaction> Transactions)> SaveTransactionsFromXml(Stream xml)
         {
             var transactions = XmlTransactionParser.GetTransactions(xml).ToList();
             var alreadyExistingtransactions = await transactionStore.Query(q => q);
 
             var transactionsToSave = transactions
-                .Where(x => !alreadyExistingtransactions.Any(t => t.OrderDate == x.OrderDate && t.Amount == x.Amount && t.EndingBalance == x.EndingBalance))
+                .Where(x => !alreadyExistingtransactions.Any(t => t.OrderDate == x.OrderDate && t.Amount == x.Amount && t.EndingBalance == x.EndingBalance)) // TODO: warunek jest niewystarczający
                 .ToList();
 
             await transactionStore.Save(transactionsToSave);
 
-            await messageBus.Publish(new TransactionsSaved(transactionsToSave));
+            var upload = new TransactionsUpload(Guid.NewGuid().ToString(), transactionsToSave.Select(t => t.Id));
 
-            return transactionsToSave;
+            await uploadStore.Save(upload);
+
+            await messageBus.Publish(new TransactionsUploaded(transactionsToSave));
+
+            return (upload.Id, transactionsToSave);
         }
 
         public async Task AddTagToTransaction(int transactionId, string tagName)
@@ -125,12 +132,6 @@ namespace Analyst.Core.Services
             else if (newValue == false && ignore != null)
             {
                 await ignoredTransactionsStore.Delete(ignore);
-            }
-            else if (transaction.Ignored)
-            {
-                transaction.Ignored = newValue;
-
-                await transactionStore.Save(transaction);
             }
         }
 

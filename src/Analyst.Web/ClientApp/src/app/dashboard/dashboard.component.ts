@@ -30,6 +30,7 @@ export class DashboardComponent implements OnInit {
   expandList: boolean = false;
   activeTab: string = 'Transakcje';
   loadingXml: boolean = false;
+  currentContextId: string;
 
   constructor(
     private browsingService: BrowsingService,
@@ -56,6 +57,7 @@ export class DashboardComponent implements OnInit {
       .subscribe(browsingData => this.onBrowsingDataFetched(browsingData));
     this.showCalendar = false;
     this.selectedTag = null;
+    this.currentContextId = null;
   }
 
   addMonths(value: number) {
@@ -70,17 +72,18 @@ export class DashboardComponent implements OnInit {
   }
 
   onFileSelected(file: any) {
-    this.transactionService.addTransactionsFromXml(file).subscribe(browsingData => {
-      if (browsingData.transactions.length > 0) {
+    this.transactionService.addTransactionsFromXml(file).subscribe(result => {
+      if (result.data.transactions.length > 0) {
         this.dateRange = { 
-          from: browsingData.transactions.reduce((a, b) => 
+          from: result.data.transactions.reduce((a, b) => 
             moment(a).isBefore(b.transaction.orderDate) ? a : b.transaction.orderDate, 
-            browsingData.transactions[0].transaction.orderDate), 
-          to: browsingData.transactions.reduce((a, b) => 
+            result.data.transactions[0].transaction.orderDate), 
+          to: result.data.transactions.reduce((a, b) => 
             moment(a).isAfter(b.transaction.orderDate) ? a : b.transaction.orderDate, 
-            browsingData.transactions[0].transaction.orderDate)
+            result.data.transactions[0].transaction.orderDate)
         };
-        this.onBrowsingDataFetched(browsingData);
+        this.currentContextId = result.uploadId;
+        this.onBrowsingDataFetched(result.data);
       }
 
       this.loadingXml = false;
@@ -140,8 +143,12 @@ export class DashboardComponent implements OnInit {
   }
 
   private refresh(): void {
+    const browsing = this.currentContextId ? 
+      this.browsingService.browseByUploadId(this.currentContextId) :
+      this.browsingService.browse(this.dateRange.from, this.dateRange.to);
+
     forkJoin(
-      this.browsingService.browse(this.dateRange.from, this.dateRange.to),
+      browsing,
       this.tagService.getTags()
     ).subscribe(([browsingData, tags]) => {
       this.tags = tags;

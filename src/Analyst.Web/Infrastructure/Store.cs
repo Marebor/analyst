@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 namespace Analyst.Web.Infrastructure
 {
     public class Store : 
-        IStore<Transaction>, 
+        IStore<Transaction>,
+        IStore<TransactionsUpload>,
         IStore<Tag>, 
         IStore<Filter>, 
         IStore<TagAssignment>, 
@@ -27,6 +28,9 @@ namespace Analyst.Web.Infrastructure
 
         public Task Delete(Transaction entity)
             => SaveChanges(() => dbContext.Transactions.Remove(entity));
+
+        public Task Delete(TransactionsUpload entity)
+            => SaveChanges(() => dbContext.TransactionsUploads.Remove(entity));
 
         public Task Delete(Tag entity)
             => SaveChanges(() => dbContext.Tags.Remove(entity));
@@ -52,6 +56,9 @@ namespace Analyst.Web.Infrastructure
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Transaction>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Transactions));
 
+        public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<TransactionsUpload>, IQueryable<TOut>> filter)
+            => Query(filter(dbContext.TransactionsUploads));
+
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Tag>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Tags));
 
@@ -76,6 +83,9 @@ namespace Analyst.Web.Infrastructure
         public Task<Transaction> Save(Transaction entity)
             => SaveEntity(entity, dbContext.Transactions);
 
+        public Task<TransactionsUpload> Save(TransactionsUpload entity)
+            => SaveEntity(entity, dbContext.TransactionsUploads);
+
         public Task<Tag> Save(Tag entity)
             => SaveEntity(entity, dbContext.Tags);
 
@@ -99,6 +109,9 @@ namespace Analyst.Web.Infrastructure
 
         public Task<IEnumerable<Transaction>> Save(IEnumerable<Transaction> entities)
             => SaveEntities(entities, dbContext.Transactions);
+
+        public Task<IEnumerable<TransactionsUpload>> Save(IEnumerable<TransactionsUpload> entities)
+            => SaveEntities(entities, dbContext.TransactionsUploads);
 
         public Task<IEnumerable<Tag>> Save(IEnumerable<Tag> entities)
             => SaveEntities(entities, dbContext.Tags);

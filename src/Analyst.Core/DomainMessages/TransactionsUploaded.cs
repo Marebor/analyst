@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Analyst.Core.DomainMessages
 {
-    internal class TransactionsSaved
+    internal class TransactionsUploaded
     {
-        public TransactionsSaved(IEnumerable<Transaction> transactions)
+        public TransactionsUploaded(IEnumerable<Transaction> transactions)
         {
             Transactions = transactions;
         }

@@ -42,6 +42,7 @@ namespace Analyst.Web
                 builder.UseSqlite(Configuration.GetConnectionString("Sqlite").Replace("[ROOT]", env.ContentRootPath));
             });
             services.AddScoped<IStore<Transaction>, Store>();
+            services.AddScoped<IStore<TransactionsUpload>, Store>();
             services.AddScoped<IStore<Tag>, Store>();
             services.AddScoped<IStore<Filter>, Store>();
             services.AddScoped<IStore<TagAssignment>, Store>();
