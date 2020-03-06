@@ -106,7 +106,12 @@ namespace Analyst.Web
 
             if (bool.TryParse(Configuration["MigrateTransactionIgnore"], out bool migrate) && migrate)
             {
-                Migrator.MigrateTransactionIgnore(db);
+                db.MigrateTransactionIgnore();
+            }
+
+            if (bool.TryParse(Configuration["AddAccountNumberToTransactionsIfEmpty"], out bool addAccountNumber) && addAccountNumber)
+            {
+                db.AddAccountNumberToTransactionsIfEmpty(Configuration["AccountNumber"]);
             }
         }
     }

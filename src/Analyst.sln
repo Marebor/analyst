@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.645
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analyst.Core", "Analyst.Core\Analyst.Core.csproj", "{7BE76D2E-9900-4B8F-84C7-E2E4D3F43E3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analyst.Web", "Analyst.Web\Analyst.Web.csproj", "{638F9CAC-2D18-4B47-A15A-6008FA41E955}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analyst.Web", "Analyst.Web\Analyst.Web.csproj", "{638F9CAC-2D18-4B47-A15A-6008FA41E955}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
