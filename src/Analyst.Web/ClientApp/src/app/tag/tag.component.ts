@@ -1,4 +1,4 @@
-import { TagService } from './../services/tag.service';
+import { TagService } from '../services/tag.service';
 import { Component, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Tag } from '../models/tag.model';
 

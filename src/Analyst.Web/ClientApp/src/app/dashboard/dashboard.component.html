@@ -18,6 +18,17 @@
     <app-date-range [displayedDate]="calendarStartDate" (dateRangeChange)="onDateRangeChanged($event)"></app-date-range>
   </div>
 </div>
+<div *ngIf="!currentContextId" class="accounts-list">
+  <ul class="list-group">
+    <li *ngFor="let account of accounts" class="list-group-item">
+      <input type="checkbox" class="form-check-input"
+        [checked]="isAccountSelected(account)"
+        [disabled]="selectedAccounts.length === 1 && isAccountSelected(account)"
+        (click)="accountSelectionChanged(account)">
+      {{ account.name || account.number }}
+    </li>
+  </ul>
+</div>
 <div class="chart-wrapper">
   <app-chart [data$]="chartData$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
 </div>

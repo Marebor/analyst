@@ -1,9 +1,9 @@
-import { Filter } from './../models/filter.model';
-import { BrowsingService } from './../services/browsing.service';
+import { Filter } from '../models/filter.model';
+import { BrowsingService } from '../services/browsing.service';
 import { forkJoin } from 'rxjs/observable/forkJoin';
-import { TagService } from './../services/tag.service';
-import { Tag } from './../models/tag.model';
-import { FilterService } from './../services/filter.service';
+import { TagService } from '../services/tag.service';
+import { Tag } from '../models/tag.model';
+import { FilterService } from '../services/filter.service';
 import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter, Input, HostListener } from '@angular/core';
 import { Observable } from 'rxjs';
 

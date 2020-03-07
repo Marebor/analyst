@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,13 +38,14 @@ namespace Analyst.Web.Controllers
         }
 
         [HttpGet("browse")]
-        public async Task<IActionResult> BrowseTransactions(DateTime? dateFrom, DateTime? dateTo)
+        public async Task<IActionResult> BrowseTransactions(DateTime? dateFrom, DateTime? dateTo, string[] accountNumbers)
         {
             var startDate = dateFrom.HasValue ? dateFrom.Value : DateTime.Today.AddDays(-14);
             var endDate = dateTo.HasValue ? dateTo.Value : DateTime.Today;
 
             var transactions = await transactionStore.Query(q => q
                 .Where(t => t.OrderDate >= startDate && t.OrderDate <= endDate)
+                .Where(t => accountNumbers.Contains(t.AccountNumber))
                 .OrderByDescending(t => t.OrderDate));
 
             return Ok(await browsingService.Browse(transactions));

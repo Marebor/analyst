@@ -57,6 +57,7 @@ namespace Analyst.Web
             services.AddScoped<TransactionService>();
             services.AddScoped<TagService>();
             services.AddScoped<FilterService>();
+            services.AddScoped<AccountService>();
 
             services.AddLogging();
         }

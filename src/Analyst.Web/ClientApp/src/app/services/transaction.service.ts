@@ -1,11 +1,11 @@
 import { BrowsingService } from './browsing.service';
 import { tap } from 'rxjs/operators/tap';
-import { IBrowsingData, IUploadResult } from './../models/browsing-data';
+import { IBrowsingData, IUploadResult } from '../models/browsing-data';
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { Transaction } from '../models/transaction.model';
-import { Subject } from '../../../node_modules/rxjs';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class TransactionService {

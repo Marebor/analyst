@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs/Subject';
-import { IBrowsingData } from './../models/browsing-data';
+import { IBrowsingData } from '../models/browsing-data';
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
@@ -16,14 +16,15 @@ export class BrowsingService {
     ) {
   }
 
-  browse(dateFrom: Date, dateTo: Date): Observable<IBrowsingData> {
+  browse(dateFrom: Date, dateTo: Date, accountNumbers: string[]): Observable<IBrowsingData> {
     return this.httpClient.get<IBrowsingData>(
         `${this.originUrl}api/transactions/browse`,
         { 
             params: new HttpParams({ 
                 fromObject: { 
                     dateFrom: this.datePipe.transform(dateFrom, 'yyyy-MM-dd'), 
-                    dateTo: this.datePipe.transform(dateTo, 'yyyy-MM-dd') 
+                    dateTo: this.datePipe.transform(dateTo, 'yyyy-MM-dd'),
+                    accountNumbers
                 }
             })
         }

@@ -1,5 +1,5 @@
-import { IBrowsingData } from './../models/browsing-data';
-import { TagService } from './../services/tag.service';
+import { IBrowsingData } from '../models/browsing-data';
+import { TagService } from '../services/tag.service';
 import { Component, Input, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { Transaction } from '../models/transaction.model';
 import { Tag } from '../models/tag.model';

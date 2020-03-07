@@ -1,5 +1,5 @@
-import { TransactionService } from './../services/transaction.service';
-import { Transaction } from './../models/transaction.model';
+import { TransactionService } from '../services/transaction.service';
+import { Transaction } from '../models/transaction.model';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';

@@ -1,10 +1,10 @@
 import { BrowsingService } from './browsing.service';
-import { Tag } from './../models/tag.model';
+import { Tag } from '../models/tag.model';
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { Filter } from '../models/filter.model';
-import { tap } from '../../../node_modules/rxjs/operators';
+import { tap } from 'rxjs/operators';
 
 @Injectable()
 export class FilterService {

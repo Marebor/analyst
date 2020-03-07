@@ -3,14 +3,16 @@ using System;
 using Analyst.Web.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Analyst.Web.Migrations
 {
     [DbContext(typeof(AnalystDbContext))]
-    partial class AnalystDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200212064908_Accounts")]
+    partial class Accounts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -122,18 +124,6 @@ namespace Analyst.Web.Migrations
                     b.HasKey("TransactionId");
 
                     b.ToTable("IgnoredTransactions");
-                });
-
-            modelBuilder.Entity("Analyst.Core.Models.TransactionsUpload", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("TransactionsIds");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TransactionsUploads");
                 });
 #pragma warning restore 612, 618
         }

@@ -59,6 +59,18 @@
   background-color: white;
 }
 
+.accounts-list {
+  width: 300px;
+  margin-top: 40px;
+  margin-left: 20px;
+  position: absolute;
+  z-index: 1;
+}
+
+.accounts-list li {
+  padding-left: 40px;
+}
+
 .chart-wrapper {
   height: calc(60vh - 44px);
   padding: 40px;

@@ -1,14 +1,18 @@
-import { ChartDataItem } from './../chart/chart-data-item.model';
-import { IBrowsingData } from './../models/browsing-data';
-import { BrowsingService } from './../services/browsing.service';
+import { Account } from './../models/account.model';
+import { tap } from 'rxjs/operators/tap';
+import { flatMap } from 'rxjs/operators';
+import { ChartDataItem } from '../chart/chart-data-item.model';
+import { IBrowsingData } from '../models/browsing-data';
+import { BrowsingService } from '../services/browsing.service';
 import { Subject } from 'rxjs/Subject';
-import { TagService } from './../services/tag.service';
-import { Transaction } from './../models/transaction.model';
+import { TagService } from '../services/tag.service';
+import { Transaction } from '../models/transaction.model';
 import { Component, OnInit } from '@angular/core';
 import { TransactionService } from '../services/transaction.service';
 import { Tag } from '../models/tag.model';
 import * as moment from 'moment'
 import { forkJoin } from 'rxjs/observable/forkJoin';
+import { AccountService } from '../services/account.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,11 +35,14 @@ export class DashboardComponent implements OnInit {
   activeTab: string = 'Transakcje';
   loadingXml: boolean = false;
   currentContextId: string;
+  accounts: Account[];
+  selectedAccounts: Account[];
 
   constructor(
     private browsingService: BrowsingService,
     private transactionService: TransactionService, 
     private tagService: TagService,
+    private accountService: AccountService,
     ) { }
 
   ngOnInit() {
@@ -53,7 +60,7 @@ export class DashboardComponent implements OnInit {
     this.dateRange = dateRange;
     this.calendarStartDate = new Date(this.dateRange.from)
     this.calendarStartDate.setMonth(this.calendarStartDate.getMonth() - 1);
-    this.browsingService.browse(this.dateRange.from, this.dateRange.to)
+    this.browsingService.browse(this.dateRange.from, this.dateRange.to, this.selectedAccounts.map(a => a.number))
       .subscribe(browsingData => this.onBrowsingDataFetched(browsingData));
     this.showCalendar = false;
     this.selectedTag = null;
@@ -90,6 +97,26 @@ export class DashboardComponent implements OnInit {
     });
   
     this.loadingXml = true;
+  }
+
+  isAccountSelected(account: Account): boolean {
+    return this.selectedAccounts.findIndex(a => a.number === account.number) >= 0;
+  }
+
+  accountSelectionChanged(account: Account) {
+    const index = this.selectedAccounts.findIndex(a => a.number === account.number);
+
+    if (index >= 0) {
+      if (this.selectedAccounts.length === 1) {
+        return;
+      }
+
+      this.selectedAccounts.splice(index, 1);
+    } else {
+      this.selectedAccounts.push(account);
+    }
+
+    this.refresh();
   }
 
   toggleMode() {
@@ -145,7 +172,16 @@ export class DashboardComponent implements OnInit {
   private refresh(): void {
     const browsing = this.currentContextId ? 
       this.browsingService.browseByUploadId(this.currentContextId) :
-      this.browsingService.browse(this.dateRange.from, this.dateRange.to);
+      this.accountService.getAccounts().pipe(
+        tap(accounts => {
+          this.accounts = accounts;
+
+          if (!this.selectedAccounts) {
+            this.selectedAccounts = accounts;
+          }
+        }),
+        flatMap(_ => this.browsingService.browse(this.dateRange.from, this.dateRange.to, this.selectedAccounts.map(a => a.number)))
+      );
 
     forkJoin(
       browsing,
