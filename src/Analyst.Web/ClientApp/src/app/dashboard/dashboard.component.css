@@ -59,8 +59,8 @@
   background-color: white;
 }
 
-.accounts-list {
-  width: 300px;
+.accounts-and-summary {
+  width: 280px;
   margin-top: 40px;
   margin-left: 20px;
   position: absolute;
@@ -69,6 +69,10 @@
 
 .accounts-list li {
   padding-left: 40px;
+}
+
+.summary td {
+  padding: 0 10px;
 }
 
 .chart-wrapper {

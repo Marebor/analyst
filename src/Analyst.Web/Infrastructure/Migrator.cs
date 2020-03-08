@@ -31,5 +31,24 @@ namespace Analyst.Web.Infrastructure
 
             db.SaveChanges();
         }
+
+        public static void ApplyAutomaticIgnoreForHistoricalTransactions(this AnalystDbContext db)
+        {
+            var ignoredTransactionsIds = db.IgnoredTransactions.Select(x => x.TransactionId).ToArray();
+            var notIgnoredTransactions = db.Transactions.Where(t => !ignoredTransactionsIds.Contains(t.Id)).ToArray();
+            var filtersWithIgnoreTag = db.Filters.Where(f => f.TagNamesIfTrue.Contains("IGNORE"));
+
+            var transactionsToIgnore = filtersWithIgnoreTag
+                .SelectMany(f => f.Apply(notIgnoredTransactions))
+                .Select(t => t.Id)
+                .Distinct();
+
+            var ignores = transactionsToIgnore
+                .Select(x => new TransactionIgnore { TransactionId = x });
+
+            db.IgnoredTransactions.AddRange(ignores);
+
+            db.SaveChanges();
+        }
     }
 }

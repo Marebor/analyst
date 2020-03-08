@@ -42,23 +42,32 @@ namespace Analyst.Core.Services
             AddTransactionsFromAssignments(transactionsPerTag, transactions, assignments);
 
             return new BrowsingData(
-                transactions
+                transactions: transactions
                     .Select(t => new TransactionReadModel(t, transactionsPerTag
                         .Where(kvp => kvp.Value.Any(v => v.Id == t.Id))
                         .Select(kvp => kvp.Key),
                         comments.SingleOrDefault(c => c.TransactionId == t.Id)?.Text,
                         ignoredTransactions.Any(it => it.TransactionId == t.Id)))
                     .ToArray(),
-                transactionsPerTag
+                spendingsPerTag: transactionsPerTag
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value
                         .Where(t => t.Amount < 0)
                         .Where(t => !ignoredTransactions.Any(it => it.TransactionId == t.Id))
                         .Sum(t => -t.Amount)),
-                transactions
+                otherSpendings: transactions
                     .Where(t => !transactionsPerTag.SelectMany(kvp => kvp.Value).Any(v => t.Id == v.Id))
                     .Where(t => t.Amount < 0)
                     .Where(t => !ignoredTransactions.Any(it => it.TransactionId == t.Id))
-                    .Sum(t => -t.Amount));
+                    .Sum(t => -t.Amount),
+                summary: new Summary(
+                    totalIncome: transactions
+                        .Where(t => t.Amount > 0)
+                        .Where(t => !ignoredTransactions.Any(it => it.TransactionId == t.Id))
+                        .Sum(t => t.Amount),
+                    totalExpenses: transactions
+                        .Where(t => t.Amount < 0)
+                        .Where(t => !ignoredTransactions.Any(it => it.TransactionId == t.Id))
+                        .Sum(t => -t.Amount)));
         }
 
         private void AddTransactionsFromFilters(

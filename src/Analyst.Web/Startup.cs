@@ -114,6 +114,11 @@ namespace Analyst.Web
             {
                 db.AddAccountNumberToTransactionsIfEmpty(Configuration["AccountNumber"]);
             }
+
+            if (bool.TryParse(Configuration["ApplyAutomaticIgnoreForHistoricalTransactions"], out bool applyAutomaticIgnore) && applyAutomaticIgnore)
+            {
+                db.ApplyAutomaticIgnoreForHistoricalTransactions();
+            }
         }
     }
 }

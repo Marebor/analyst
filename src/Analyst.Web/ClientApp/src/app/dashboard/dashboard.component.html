@@ -18,16 +18,37 @@
     <app-date-range [displayedDate]="calendarStartDate" (dateRangeChange)="onDateRangeChanged($event)"></app-date-range>
   </div>
 </div>
-<div *ngIf="!currentContextId" class="accounts-list">
-  <ul class="list-group">
-    <li *ngFor="let account of accounts" class="list-group-item">
-      <input type="checkbox" class="form-check-input"
-        [checked]="isAccountSelected(account)"
-        [disabled]="selectedAccounts.length === 1 && isAccountSelected(account)"
-        (click)="accountSelectionChanged(account)">
-      {{ account.name || account.number }}
-    </li>
-  </ul>
+<div class="accounts-and-summary">
+  <div *ngIf="!currentContextId" class="accounts-list">
+    <ul class="list-group">
+      <li *ngFor="let account of accounts" class="list-group-item">
+        <input type="checkbox" class="form-check-input"
+          [checked]="isAccountSelected(account)"
+          [disabled]="selectedAccounts.length === 1 && isAccountSelected(account)"
+          (click)="accountSelectionChanged(account)">
+        {{ account.name || account.number }}
+      </li>
+    </ul>
+  </div>
+  <div class="summary">
+    <h4>Podsumowanie:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td><b>Przychody:</b></td>
+          <td>{{ browsingData.summary.totalIncome | number:'1.2-2' }}</td>
+        </tr>
+        <tr>
+          <td><b>Wydatki:</b></td>
+          <td>{{ browsingData.summary.totalExpenses | number:'1.2-2' }}</td>
+        </tr>
+        <tr>
+          <td><b>Zysk:</b></td>
+          <td>{{ browsingData.summary.profit | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 <div class="chart-wrapper">
   <app-chart [data$]="chartData$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
