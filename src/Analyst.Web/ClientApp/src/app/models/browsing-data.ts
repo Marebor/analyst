@@ -14,7 +14,7 @@ export interface IBrowsingData {
 
 export interface ISummary {
     totalIncome: number,
-    totalSpendings: number,
+    totalExpenses: number,
     profit: number,
 }
 
