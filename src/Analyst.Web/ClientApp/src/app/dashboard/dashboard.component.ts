@@ -37,6 +37,10 @@ export class DashboardComponent implements OnInit {
   currentContextId: string;
   accounts: Account[];
   selectedAccounts: Account[];
+  showIncome: boolean = true;
+  showExpenses: boolean = true;
+  showIgnored: boolean = true;
+  showNotIgnored: boolean = true;
 
   constructor(
     private browsingService: BrowsingService,
@@ -117,6 +121,38 @@ export class DashboardComponent implements OnInit {
     }
 
     this.refresh();
+  }
+
+  incomeCheckboxClicked() {
+    this.showIncome = !this.showIncome;
+
+    this.publishData();
+  }
+
+  expensesCheckboxClicked() {
+    this.showExpenses = !this.showExpenses;
+    
+    this.publishData();
+  }
+
+  ignoredDisplayValueChanged(value: string) {
+    switch (value)
+    {
+      case 'ShowAll':
+        this.showIgnored = true;
+        this.showNotIgnored = true;
+        break;
+      case 'OnlyIgnored':
+        this.showIgnored = true;
+        this.showNotIgnored = false;
+        break;
+      case 'OnlyNotIgnored':
+        this.showIgnored = false;
+        this.showNotIgnored = true;
+        break;
+    }
+
+    this.publishData();
   }
 
   toggleMode() {
@@ -224,7 +260,7 @@ export class DashboardComponent implements OnInit {
   }
   
   private getChartData(): ChartDataItem[] {
-    if (!this.browsingData) {
+    if (!this.browsingData || !this.showExpenses || !this.showNotIgnored) {
       return [];
     }
 
@@ -269,13 +305,31 @@ export class DashboardComponent implements OnInit {
       return [];
     }
 
+    let transactionsToShow = this.browsingData.transactions;
+
+    if (!this.showIncome) {
+      transactionsToShow = transactionsToShow.filter(t => t.transaction.amount < 0);
+    }
+
+    if (!this.showExpenses) {
+      transactionsToShow = transactionsToShow.filter(t => t.transaction.amount > 0);
+    }
+
+    if (!this.showIgnored) {
+      transactionsToShow = transactionsToShow.filter(t => !t.ignored);
+    }
+
+    if (!this.showNotIgnored) {
+      transactionsToShow = transactionsToShow.filter(t => t.ignored);      
+    }
+
     if (this.selectedTag) {
-      return this.browsingData.transactions
+      return transactionsToShow
         .map(t => t.transaction)
         .filter(t => this.selectedTag.name !== 'Inne' ?
           t.tags.findIndex(tag => tag.name === this.selectedTag.name) >= 0 : t.tags.length === 0);
     } else {
-      return this.browsingData.transactions.map(t => t.transaction);
+      return transactionsToShow.map(t => t.transaction);
     }
   }
 }

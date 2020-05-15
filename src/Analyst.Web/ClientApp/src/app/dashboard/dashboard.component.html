@@ -30,24 +30,45 @@
       </li>
     </ul>
   </div>
-  <div class="summary">
+  <div class="summary pt-4">
     <h4>Podsumowanie:</h4>
     <table>
       <tbody>
         <tr>
           <td><b>Przychody:</b></td>
           <td>{{ browsingData.summary.totalIncome | number:'1.2-2' }}</td>
+          <td>
+            <input type="checkbox" [checked]="showIncome" (click)="incomeCheckboxClicked()" />
+          </td>
         </tr>
         <tr>
           <td><b>Wydatki:</b></td>
           <td>{{ browsingData.summary.totalExpenses | number:'1.2-2' }}</td>
+          <td>
+            <input type="checkbox" [checked]="showExpenses" (click)="expensesCheckboxClicked()" />
+          </td>
         </tr>
         <tr>
           <td><b>Zysk:</b></td>
           <td>{{ browsingData.summary.profit | number:'1.2-2' }}</td>
+          <td></td>
         </tr>
       </tbody>
     </table>
+    <div class="pt-4">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="ignoredDisplayOptions" id="ShowAll" [checked]="true" (click)="ignoredDisplayValueChanged('ShowAll')">
+        <label class="form-check-label" for="ShowAll">Wszystkie</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="ignoredDisplayOptions" id="OnlyIgnored" (click)="ignoredDisplayValueChanged('OnlyIgnored')">
+        <label class="form-check-label" for="OnlyIgnored">Tylko ignorowane</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="ignoredDisplayOptions" id="OnlyNotIgnored" (click)="ignoredDisplayValueChanged('OnlyNotIgnored')">
+        <label class="form-check-label" for="OnlyOthers">Tylko nieignorowane</label>
+      </div>
+    </div>
   </div>
 </div>
 <div class="chart-wrapper">
