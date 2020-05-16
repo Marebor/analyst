@@ -45,8 +45,7 @@ namespace Analyst.Web.Controllers
 
             var transactions = await transactionStore.Query(q => q
                 .Where(t => t.OrderDate >= startDate && t.OrderDate <= endDate)
-                .Where(t => accountNumbers.Contains(t.AccountNumber))
-                .OrderByDescending(t => t.OrderDate));
+                .Where(t => accountNumbers.Contains(t.AccountNumber)));
 
             return Ok(await browsingService.Browse(transactions));
         }

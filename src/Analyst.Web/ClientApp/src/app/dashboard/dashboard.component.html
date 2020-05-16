@@ -56,18 +56,8 @@
       </tbody>
     </table>
     <div class="pt-4">
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="ignoredDisplayOptions" id="ShowAll" [checked]="true" (click)="ignoredDisplayValueChanged('ShowAll')">
-        <label class="form-check-label" for="ShowAll">Wszystkie</label>
-      </div>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="ignoredDisplayOptions" id="OnlyIgnored" (click)="ignoredDisplayValueChanged('OnlyIgnored')">
-        <label class="form-check-label" for="OnlyIgnored">Tylko ignorowane</label>
-      </div>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="ignoredDisplayOptions" id="OnlyNotIgnored" (click)="ignoredDisplayValueChanged('OnlyNotIgnored')">
-        <label class="form-check-label" for="OnlyOthers">Tylko nieignorowane</label>
-      </div>
+      <button class="btn btn-outline-dark mt-2" (click)="displayListOfIgnoredTransactions()">Pokaż ignorowane</button>
+      <button class="btn btn-outline-dark mt-2" (click)="displayListOfNotIgnoredTransactions()">Pokaż nieignorowane</button>
     </div>
   </div>
 </div>

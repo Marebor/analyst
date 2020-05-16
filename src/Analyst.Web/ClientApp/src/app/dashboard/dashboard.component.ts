@@ -135,22 +135,18 @@ export class DashboardComponent implements OnInit {
     this.publishData();
   }
 
-  ignoredDisplayValueChanged(value: string) {
-    switch (value)
-    {
-      case 'ShowAll':
-        this.showIgnored = true;
-        this.showNotIgnored = true;
-        break;
-      case 'OnlyIgnored':
-        this.showIgnored = true;
-        this.showNotIgnored = false;
-        break;
-      case 'OnlyNotIgnored':
-        this.showIgnored = false;
-        this.showNotIgnored = true;
-        break;
-    }
+  displayListOfIgnoredTransactions(value: string) {
+    this.showIgnored = true;
+    this.showNotIgnored = false;
+    this.expandList = true;
+
+    this.publishData();
+  }
+
+  displayListOfNotIgnoredTransactions(value: string) {
+    this.showIgnored = false;
+    this.showNotIgnored = true;
+    this.expandList = true;
 
     this.publishData();
   }
@@ -158,6 +154,10 @@ export class DashboardComponent implements OnInit {
   toggleMode() {
     if (this.expandList) {
       this.selectedTransaction = null;
+      this.selectedTag = null;
+      this.showIgnored = true;
+      this.showNotIgnored = true;
+      this.publishData();
     }
 
     this.expandList = !this.expandList;
@@ -166,6 +166,7 @@ export class DashboardComponent implements OnInit {
   tagClickedOnChart(tag: Tag) {
     if (!this.selectedTag || this.selectedTag.name !== tag.name) {
       this.selectedTag = tag;
+      this.expandList = true;
     } else {
       this.selectedTag = null;
     }

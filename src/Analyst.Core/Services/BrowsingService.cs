@@ -43,6 +43,7 @@ namespace Analyst.Core.Services
 
             return new BrowsingData(
                 transactions: transactions
+                    .OrderByDescending(t => t.OrderDate)
                     .Select(t => new TransactionReadModel(t, transactionsPerTag
                         .Where(kvp => kvp.Value.Any(v => v.Id == t.Id))
                         .Select(kvp => kvp.Key),
