@@ -11,8 +11,8 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let transaction of transactions" [class.ignored]="transaction.ignored" [class.selected]="selectedTransaction === transaction" 
-    (click)="transactionClicked(transaction)">
+    <tr *ngFor="let transaction of transactions; let i = index" [class.ignored]="transaction.ignored" [class.selected]="selectedTransactionIndex === i" 
+    (click)="transactionClicked(i)">
       <td>{{ transaction.orderDate | date:'dd.MM.yyyy' }}</td>
       <td>{{ transaction.type }}</td>
       <td class="text-wrap">{{ transaction.description }}</td>

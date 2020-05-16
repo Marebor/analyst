@@ -17,26 +17,38 @@ export class TransactionsListComponent implements OnInit {
   @Output() transactionIgnoreValueChanged: EventEmitter<Transaction> = new EventEmitter<Transaction>();
   transactions: Transaction[];
   tags: Tag[];
-  selectedTransaction: Transaction;
+  selectedTransactionIndex: number;
   expandedCommentTransaction: Transaction;
   commentEdited: boolean = false;
   commentText: string;
 
-  constructor(private tagService: TagService, private transactionService: TransactionService) {
+  constructor(private transactionService: TransactionService) {
   }
 
   ngOnInit() {
     this.tagSelected$.subscribe(tag => {
-      if (this.selectedTransaction && !this.selectedTransaction.tags.find(t => t.name === tag.name)) {
-        this.transactionService.addTagToTransaction(this.selectedTransaction.id, tag.name).subscribe();
+      if (!this.selectedTransactionIndex) {
+        return;
+      }
+
+      const selectedTransaction = this.transactions.find((t, i) => i === this.selectedTransactionIndex);
+      
+      if (!selectedTransaction.tags.find(t => t.name === tag.name)) {
+        this.transactionService.addTagToTransaction(selectedTransaction.id, tag.name).subscribe();
       }
     });
 
-    this.transactions$.subscribe(transactions => this.transactions = transactions);
+    this.transactions$.subscribe(transactions => {
+      this.transactions = transactions;
+
+      if (this.selectedTransactionIndex && this.transactions.length <= this.selectedTransactionIndex) {
+        this.selectedTransactionIndex = this.transactions.length - 1;
+      }
+    });
   }
 
-  transactionClicked(transaction: Transaction) {
-    this.selectedTransaction = this.selectedTransaction === transaction ? null : transaction;
+  transactionClicked(transactionIndex: number) {
+    this.selectedTransactionIndex = this.selectedTransactionIndex === transactionIndex ? null : transactionIndex;
   }
 
   commentIconClicked(transaction: Transaction) {
