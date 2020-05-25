@@ -135,7 +135,7 @@ export class DashboardComponent implements OnInit {
     this.publishData();
   }
 
-  displayListOfIgnoredTransactions(value: string) {
+  displayListOfIgnoredTransactions() {
     this.showIgnored = true;
     this.showNotIgnored = false;
     this.expandList = true;
@@ -143,7 +143,7 @@ export class DashboardComponent implements OnInit {
     this.publishData();
   }
 
-  displayListOfNotIgnoredTransactions(value: string) {
+  displayListOfNotIgnoredTransactions() {
     this.showIgnored = false;
     this.showNotIgnored = true;
     this.expandList = true;
