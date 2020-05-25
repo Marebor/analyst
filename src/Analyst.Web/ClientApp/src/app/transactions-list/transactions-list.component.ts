@@ -27,7 +27,7 @@ export class TransactionsListComponent implements OnInit {
 
   ngOnInit() {
     this.tagSelected$.subscribe(tag => {
-      if (!this.selectedTransactionIndex) {
+      if (this.selectedTransactionIndex === null || this.selectedTransactionIndex === undefined) {
         return;
       }
 

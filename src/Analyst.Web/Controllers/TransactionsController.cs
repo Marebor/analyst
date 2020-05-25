@@ -53,14 +53,16 @@ namespace Analyst.Web.Controllers
         [HttpPost("xml")]
         public async Task<IActionResult> LoadFromXml()
         {
-            Stream file = Request.Form.Files.First().OpenReadStream();
-            var uploadIdAndTransactions = await transactionService.SaveTransactionsFromXml(file);
-
-            return Ok(new
+            using (var file = Request.Form.Files.First().OpenReadStream())
             {
-                uploadIdAndTransactions.UploadId,
-                Data = await browsingService.Browse(uploadIdAndTransactions.Transactions)
-            });
+                var uploadIdAndTransactions = await transactionService.SaveTransactionsFromXml(file);
+
+                return Ok(new
+                {
+                    uploadIdAndTransactions.UploadId,
+                    Data = await browsingService.Browse(uploadIdAndTransactions.Transactions)
+                });
+            }
         }
 
         [HttpPost("{transactionId}/tags")]
