@@ -53,6 +53,33 @@ namespace Analyst.Web.Infrastructure
         public Task Delete(Account entity)
             => SaveChanges(() => dbContext.Accounts.Remove(entity));
 
+        public Task Delete(IEnumerable<Transaction> entities)
+            => SaveChanges(() => dbContext.Transactions.RemoveRange(entities));
+
+        public Task Delete(IEnumerable<TransactionsUpload> entities)
+            => SaveChanges(() => dbContext.TransactionsUploads.RemoveRange(entities));
+
+        public Task Delete(IEnumerable<Tag> entities)
+            => SaveChanges(() => dbContext.Tags.RemoveRange(entities));
+
+        public Task Delete(IEnumerable<Filter> entities)
+            => SaveChanges(() => dbContext.Filters.RemoveRange(entities));
+
+        public Task Delete(IEnumerable<TagAssignment> entities)
+            => SaveChanges(() => dbContext.TagAssignments.RemoveRange(entities));
+
+        public Task Delete(IEnumerable<TagSuppression> entities)
+            => SaveChanges(() => dbContext.TagSuppressions.RemoveRange(entities));
+
+        public Task Delete(IEnumerable<Comment> entities)
+            => SaveChanges(() => dbContext.Comments.RemoveRange(entities));
+
+        public Task Delete(IEnumerable<TransactionIgnore> entities)
+            => SaveChanges(() => dbContext.IgnoredTransactions.RemoveRange(entities));
+
+        public Task Delete(IEnumerable<Account> entities)
+            => SaveChanges(() => dbContext.Accounts.RemoveRange(entities));
+
         public Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<Transaction>, IQueryable<TOut>> filter)
             => Query(filter(dbContext.Transactions));
 

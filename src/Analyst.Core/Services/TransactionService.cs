@@ -61,13 +61,18 @@ namespace Analyst.Core.Services
             return (upload.Id, transactionsToSave);
         }
 
-        public async Task AddTagToTransaction(int transactionId, string tagName)
+        public async Task SaveTransactionTags(int transactionId, IEnumerable<TagReadModel> tagsToAssign)
         {
-            var tag = await tagService.GetTagByName(tagName);
-
-            if (tag == null)
+            if (tagsToAssign.Any(x => x.Amount < 0))
             {
-                throw new Exception($"Tag {tagName} does not exist.");
+                throw new Exception("Incorrect amount.");
+            }
+
+            var tags = await tagService.GetTagsByName(tagsToAssign.Select(x => x.Name));
+
+            if (tags.Count != tagsToAssign.Count())
+            {
+                throw new Exception($"Some of specified tags does not exist.");
             }
 
             var transaction = (await transactionStore.Query(q => q.Where(t => t.Id == transactionId))).SingleOrDefault();
@@ -77,41 +82,36 @@ namespace Analyst.Core.Services
                 throw new Exception($"Transaction with id = {transactionId} does not exist.");
             }
 
-            var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
-            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
-
-            if (tagSuppression != null)
+            if (tagsToAssign.Sum(x => x.Amount) > Math.Abs(transaction.Amount))
             {
-                await tagSuppressionStore.Delete(tagSuppression);
-
-                return;
+                throw new Exception("Sum of amount values is higher than transaction amount.");
             }
 
-            if (tagAssignment != null)
-            {
-                return;
-            }
+            var tagAssignments = await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId));
+            var tagSuppressions = await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId));
 
-            await tagAssignmentStore.Save(new TagAssignment { TagName = tagName, TransactionId = transactionId });
-        }
+            var newAssignments = tagsToAssign
+                .Where(x => x.Amount > 0)
+                .Select(x => new TagAssignment
+                {
+                    TransactionId = transaction.Id,
+                    TagName = x.Name,
+                    Amount = x.Amount,
+                });
 
-        public async Task RemoveTagFromTransaction(int transactionId, string tagName)
-        {
-            var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
+            var assignmentsToDelete = tagAssignments
+                .Where(x => !newAssignments
+                    .Select(y => y.TagName)
+                    .Contains(x.TagName));
 
-            if (tagAssignment != null)
-            {
-                await tagAssignmentStore.Delete(tagAssignment);
+            var suppressionsToDelete = tagSuppressions
+                .Where(x => newAssignments
+                    .Select(y => y.TagName)
+                    .Contains(x.TagName));
 
-                return;
-            }
-
-            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TransactionId == transactionId && x.TagName == tagName))).SingleOrDefault();
-
-            if (tagSuppression == null)
-            {
-                await tagSuppressionStore.Save(new TagSuppression { TagName = tagName, TransactionId = transactionId });
-            }
+            await tagAssignmentStore.Save(newAssignments);
+            await tagAssignmentStore.Delete(assignmentsToDelete);
+            await tagSuppressionStore.Delete(suppressionsToDelete);
         }
 
         public async Task SetIgnoredValue(int transactionId, bool newValue)

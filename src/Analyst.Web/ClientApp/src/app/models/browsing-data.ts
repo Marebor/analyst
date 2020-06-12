@@ -5,7 +5,10 @@ export interface IBrowsingData {
     otherSpendings: number;
     transactions: { 
         transaction: Transaction, 
-        tags: string[],
+        tags: {
+            name: string,
+            amount: number,
+        }[],
         comment: string,
         ignored: boolean,
     }[],

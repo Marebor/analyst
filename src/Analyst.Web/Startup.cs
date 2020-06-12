@@ -119,6 +119,8 @@ namespace Analyst.Web
             {
                 db.ApplyAutomaticIgnoreForHistoricalTransactions();
             }
+
+            db.AddDefaultValuesToZeroAmountTagAssignments();
         }
     }
 }

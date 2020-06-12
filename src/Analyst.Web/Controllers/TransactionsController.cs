@@ -66,9 +66,9 @@ namespace Analyst.Web.Controllers
         }
 
         [HttpPost("{transactionId}/tags")]
-        public async Task<IActionResult> AddTag(int transactionId, [FromBody] string tagName)
+        public async Task<IActionResult> UpdateTags(int transactionId, [FromBody] IEnumerable<TagReadModel> tags)
         {
-            await transactionService.AddTagToTransaction(transactionId, tagName);
+            await transactionService.SaveTransactionTags(transactionId, tags);
 
             return Ok();
         }
@@ -85,14 +85,6 @@ namespace Analyst.Web.Controllers
         public async Task<IActionResult> SetIgnoredValue(int transactionId, [FromBody] bool newValue)
         {
             await transactionService.SetIgnoredValue(transactionId, newValue);
-
-            return Ok();
-        }
-
-        [HttpDelete("{transactionId}/tags/{tagName}")]
-        public async Task<IActionResult> RemoveTag(int transactionId, string tagName)
-        {
-            await transactionService.RemoveTagFromTransaction(transactionId, tagName);
 
             return Ok();
         }

@@ -10,6 +10,7 @@ namespace Analyst.Core.Services.Abstract
         Task<T> Save(T entity);
         Task<IEnumerable<T>> Save(IEnumerable<T> entities);
         Task Delete(T entity);
+        Task Delete(IEnumerable<T> entities);
         Task<IReadOnlyCollection<TOut>> Query<TOut>(Func<IQueryable<T>, IQueryable<TOut>> filter);
     }
 }

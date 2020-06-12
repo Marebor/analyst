@@ -4,5 +4,6 @@
     {
         public int TransactionId { get; set; }
         public string TagName { get; set; }
+        public decimal Amount { get; set; }
     }
 }

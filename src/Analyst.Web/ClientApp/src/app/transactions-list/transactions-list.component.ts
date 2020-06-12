@@ -33,8 +33,11 @@ export class TransactionsListComponent implements OnInit {
 
       const selectedTransaction = this.transactions.find((t, i) => i === this.selectedTransactionIndex);
       
-      if (!selectedTransaction.tags.find(t => t.name === tag.name)) {
-        this.transactionService.addTagToTransaction(selectedTransaction.id, tag.name).subscribe();
+      if (selectedTransaction.tags.length === 0) {
+        this.transactionService.saveTransactionTags(
+          selectedTransaction.id, 
+          [{ name: tag.name, amount: Math.abs(selectedTransaction.amount) }])
+        .subscribe();
       }
     });
 
@@ -66,7 +69,14 @@ export class TransactionsListComponent implements OnInit {
   }
 
   removeTagFromTransaction(tagName: string, transactionId: number) {
-    this.transactionService.removeTagFromTransaction(transactionId, tagName).subscribe();
+    const transaction = this.transactions.find(t => t.id === transactionId);
+    
+    if (transaction.tags.length === 1 && transaction.tags[0].name === tagName) {
+      this.transactionService.saveTransactionTags(
+        transaction.id, 
+        [{ name: tagName, amount: 0 }])
+      .subscribe();
+    }
   }
 
   isTagForbidden(tag: Tag, transaction: Transaction) {
