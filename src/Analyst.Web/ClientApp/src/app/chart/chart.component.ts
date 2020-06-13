@@ -1,11 +1,11 @@
-import { FilterService } from './../services/filter.service';
+import { IBrowsingData } from '../models/browsing-data';
+import { TagService } from '../services/tag.service';
 import { Component, Input, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { Transaction } from '../models/transaction.model';
-import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
 import { Subscription } from 'rxjs/Subscription';
-import { Filter } from '../models/filter.model';
 import { ChartDataItem } from './chart-data-item.model';
+import { Observable } from '../../../node_modules/rxjs/Observable';
 
 @Component({
   selector: 'app-chart',
@@ -13,62 +13,45 @@ import { ChartDataItem } from './chart-data-item.model';
   styleUrls: ['./chart.component.css']
 })
 export class ChartComponent implements OnInit, OnDestroy {
-  @Input() transactions$: Observable<Transaction[]>;
-  @Input() tags$: Observable<Tag[]>;
-  @Input() filters$: Observable<Filter[]>;
+  @Input() data$: Observable<ChartDataItem[]>;
   @Output() tagClicked: EventEmitter<Tag> = new EventEmitter<Tag>();
-  transactions: Transaction[];
-  tags: Tag[];
-  filters: Filter[];
-  data: ChartDataItem[] = [];
-  private transactionsSubscription: Subscription;
-  private tagsSubscription: Subscription;
-  private filtersSubscription: Subscription;
+  data: ChartDataItem[];
+  dataSubscription: Subscription;
 
-  pieChartLabels: string[];
-  pieChartData: number[];
-  pieChartColors: any;
+  get othersDataItem(): ChartDataItem {
+    return this.data.find(x => x.tag.name === 'Inne');
+  }
+  get pieChartLabels(): string[] {
+    return this.data ? this.data.map(x => x.tag.name) : [];
+  }
+  get pieChartData(): number[] {
+    return this.data ? this.data.map(x => x.spendings) : [];
+  }
+  get pieChartColors(): any {
+    return this.data ? [{ backgroundColor: this.data.map(x => x.tag.color) }] : [{ backgroundColor: [] }];
+  }
   pieChartType: string = 'pie';
   pieChartOptions = {
     responsive: true
   };
 
   get dataAvailable(): boolean {
-    return this.tags && this.tags.length > 0 && this.transactions && this.transactions.length > 0;
-  }
-
-  get displayChart(): boolean {
-    return !!this.pieChartLabels && !!this.pieChartData && this.dataAvailable;
+    return this.data && this.data.length > 0;
   }
 
   get total(): number {
-    return this.transactions.reduce((a, b) => a - b.amount, 0);
-  }
-
-  constructor(private filterService: FilterService) {
+    return this.data.reduce((a, b) => a + b.spendings, 0);
   }
 
   ngOnInit() {
-    this.transactionsSubscription = this.transactions$.subscribe(transactions => {
-      this.transactions = transactions.filter(trans => trans.amount < 0 && !trans.ignored);
-      this.refresh();
-    });
-    
-    this.tagsSubscription = this.tags$.subscribe(tags => {
-      this.tags = tags;
-      this.refresh();
-    });
-    
-    this.filtersSubscription = this.filters$.subscribe(filters => {
-      this.filters = filters;
-      this.refresh();
+    this.dataSubscription = this.data$.subscribe(data => {
+      this.data = null;
+      setTimeout(() => this.data = data);
     });
   }
 
   ngOnDestroy() {
-    this.transactionsSubscription.unsubscribe();
-    this.tagsSubscription.unsubscribe();
-    this.filtersSubscription.unsubscribe();
+    this.dataSubscription.unsubscribe();
   }
 
   chartHovered($event: any) {
@@ -76,52 +59,11 @@ export class ChartComponent implements OnInit, OnDestroy {
   }
 
   chartClicked($event: any) {
-    const tag = <Tag>this.data[$event.active[0]._index].tag;
+    const tag = this.data[$event.active[0]._index].tag;
     this.onTagClicked(tag);
   }
 
   onTagClicked(tag: Tag) {
     this.tagClicked.emit(tag);
-  }
-
-  private refresh() {
-    if (!this.dataAvailable) {
-      return;
-    }
-    
-    this.pieChartLabels = null;
-
-    this.data = this.tags.map(tag => {
-      const transactions = this.filterService.filterTransactions(tag.name, this.transactions, this.filters);
-
-      return <ChartDataItem>{
-        tag,
-        transactions,
-        amount: this.getTotalAmount(transactions),
-      };
-    })
-    .filter(x => x.amount !== 0)
-    .sort((a, b) => a.amount > b.amount ? -1 : 1);
-
-    const otherTransactions = this.transactions.filter(transaction => 
-      !this.data.find(item => item.transactions.find(t => t.id === transaction.id)));
-
-    if (otherTransactions.length > 0) {
-      this.data.push({ 
-        tag: { name: 'Inne', color: 'lightgray' }, 
-        transactions: otherTransactions,
-        amount: this.getTotalAmount(otherTransactions),
-      });
-    }
-
-    setTimeout(() => {
-      this.pieChartLabels = this.data.map(x => x.tag.name);
-      this.pieChartColors = [{ backgroundColor: this.data.map(x => x.tag.color) }];
-      this.pieChartData = this.data.map(x => this.getTotalAmount(x.transactions));
-    });
-  }
-
-  private getTotalAmount(transactions: Transaction[]): number {
-    return Math.round(transactions.reduce((sum, trans) => sum - trans.amount, 0) * 100) / 100;
   }
 }

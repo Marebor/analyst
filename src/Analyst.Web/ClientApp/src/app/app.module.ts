@@ -1,3 +1,4 @@
+import { BrowsingService } from './services/browsing.service';
 import { FilterService } from './services/filter.service';
 import { FileUploadComponent } from './file-upload/file-upload.component';
 import { ChartComponent } from './chart/chart.component';
@@ -12,10 +13,12 @@ import { ChartsModule } from 'ng2-charts';
 import { AppComponent } from './app.component';
 import { TransactionsListComponent } from './transactions-list/transactions-list.component';
 import { TagService } from './services/tag.service';
+import { AccountService } from './services/account.service';
 import { FilterManagerComponent } from './filter-manager/filter-manager.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { DateRangeComponent } from './date-range/date-range.component';
 import { DatePipe } from '@angular/common';
+import { TagComponent } from './tag/tag.component';
 
 @NgModule({
   declarations: [
@@ -26,6 +29,7 @@ import { DatePipe } from '@angular/common';
     FileUploadComponent,
     FilterManagerComponent,
     DateRangeComponent,
+    TagComponent,
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -42,6 +46,8 @@ import { DatePipe } from '@angular/common';
     TransactionService,
     TagService,
     FilterService,
+    BrowsingService,
+    AccountService,
     DatePipe
   ],
   bootstrap: [AppComponent]

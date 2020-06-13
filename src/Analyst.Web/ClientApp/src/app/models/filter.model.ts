@@ -1,4 +1,8 @@
+import { Tag } from "./tag.model";
+
 export interface Filter {
+  id: number,
   tagNamesIfTrue: string[],
-  expression: string,
+  tags: Tag[],
+  keywords: string[],
 }

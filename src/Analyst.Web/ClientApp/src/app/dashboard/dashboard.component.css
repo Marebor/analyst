@@ -24,6 +24,11 @@
   transform: translateY(-50%);
 }
 
+.spinner-border {
+  position: absolute;
+  left: -50px;
+}
+
 .datepicker-wrapper {
   position: absolute;
   z-index: 100;
@@ -54,19 +59,152 @@
   background-color: white;
 }
 
+.accounts-and-summary {
+  width: 280px;
+  margin-top: 40px;
+  margin-left: 20px;
+  position: absolute;
+  z-index: 1;
+}
+
+.accounts-list li {
+  padding-left: 40px;
+}
+
+.summary td {
+  padding: 0 10px;
+}
+
 .chart-wrapper {
   height: calc(60vh - 44px);
   padding: 40px;
 }
 
 .list-wrapper {
-  height: 40vh;
+  height: 10%;
+  width: 100%;
   background-color: white;
   position: absolute;
   bottom: 0;
   transition: all .4s ease-out;
+  z-index: 100;
+  display: flex;
+  flex-flow: column;
 }
 
 .list-wrapper.expanded {
   height: calc(100vh - 44px);
+}
+
+.list-bar {
+  position: relative;
+  padding-left: 60px;
+  border-bottom: 1px solid lightgray;
+}
+
+.expand-button {
+  padding: 4px;
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  cursor: pointer;
+}
+
+.arrow {
+  height: 16px;
+  width: 16px;
+  border-width: 2px 2px 0px 0px;
+  border-style: solid;
+  border-color: darkgray;
+  transform: rotate(-45deg);
+}
+
+.arrow.down {
+  transform: translateY(-5px) rotate(135deg);
+}
+
+.arrow:hover {
+  border-color: cornflowerblue;
+}
+
+.tab-selector {
+  display: flex;
+  width: fit-content;
+  line-height: 50px;
+}
+
+.tab {
+  display: inline-block;
+  text-align: center;
+  width: 100px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.tab:hover {
+  font-weight: bold;
+  color: cornflowerblue;
+}
+
+.tab.selected {
+  font-weight: bold;
+  border-left: 1.5px solid lightgray;
+  border-top: 1.5px solid lightgray;
+  border-right: 1.5px solid lightgray;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  transform: translateY(1.5px);
+}
+
+.new-tag {
+  width: 100px;
+  position: absolute;
+  left: 260px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  top: 0;
+  background-color: white;
+  padding: 5px;
+  height: 100%;
+  align-content: center;
+}
+
+.tag-input {
+  display: inline-block;
+}
+
+.available-tags {
+  width: calc(100% - 360px);
+  position: absolute;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  top: 0;
+  background-color: white;
+  padding: 5px;
+  height: 100%;
+  align-content: center;
+}
+
+.tag-input-wrapper {
+  width: 30%;
+  display: inline-flex;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.list {
+  overflow-y: auto;
+  height: 100%;
+}
+
+.list .selected {
+  z-index: 50;
+}
+
+.list-template {
+  height: 100%;
 }

@@ -1,27 +1,97 @@
 <div class="upper-bar">
   <h1>Analyst</h1>
   <div class="file-selection">
+    <div *ngIf="loadingXml" class="spinner-border text-light" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
     <app-file-upload (fileSelected)="onFileSelected($event)"></app-file-upload>
   </div>
 </div>
 <div class="datepicker-wrapper">
   <h1>
+    <button type="button" class="btn btn-link" (click)="addMonths(-1)"><b><<<</b></button>
     Transakcje od <b>{{ dateRange.from | date:'dd.MM.yyyy' }}</b> do <b>{{ dateRange.to | date:'dd.MM.yyyy' }}</b>
     <i (click)="showCalendar = !showCalendar">zmień</i>
+    <button type="button" class="btn btn-link" (click)="addMonths(1)"><b>>>></b></button>
   </h1>
   <div *ngIf="showCalendar" class="datepicker">
-    <app-date-range (dateRangeChange)="onDateRangeChanged($event)"></app-date-range>
+    <app-date-range [displayedDate]="calendarStartDate" (dateRangeChange)="onDateRangeChanged($event)"></app-date-range>
+  </div>
+</div>
+<div class="accounts-and-summary">
+  <div *ngIf="!currentContextId" class="accounts-list">
+    <ul class="list-group">
+      <li *ngFor="let account of accounts" class="list-group-item">
+        <input type="checkbox" class="form-check-input"
+          [checked]="isAccountSelected(account)"
+          [disabled]="selectedAccounts.length === 1 && isAccountSelected(account)"
+          (click)="accountSelectionChanged(account)">
+        {{ account.name || account.number }}
+      </li>
+    </ul>
+  </div>
+  <div class="summary pt-4">
+    <h4>Podsumowanie:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td><b>Przychody:</b></td>
+          <td>{{ browsingData.summary.totalIncome | number:'1.2-2' }}</td>
+          <td>
+            <input type="checkbox" [checked]="showIncome" (click)="incomeCheckboxClicked()" />
+          </td>
+        </tr>
+        <tr>
+          <td><b>Wydatki:</b></td>
+          <td>{{ browsingData.summary.totalExpenses | number:'1.2-2' }}</td>
+          <td>
+            <input type="checkbox" [checked]="showExpenses" (click)="expensesCheckboxClicked()" />
+          </td>
+        </tr>
+        <tr>
+          <td><b>Zysk:</b></td>
+          <td>{{ browsingData.summary.profit | number:'1.2-2' }}</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pt-4">
+      <button class="btn btn-outline-dark mt-2" (click)="displayListOfIgnoredTransactions()">Pokaż ignorowane</button>
+      <button class="btn btn-outline-dark mt-2" (click)="displayListOfNotIgnoredTransactions()">Pokaż nieignorowane</button>
+    </div>
   </div>
 </div>
 <div class="chart-wrapper">
-  <app-chart [transactions$]="filteredTransactions$" [tags$]="tags$" [filters$]="filters$"
-  (tagClicked)="onTagClicked($event)"></app-chart>
+  <app-chart [data$]="chartData$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
 </div>
 <div class="list-wrapper" [class.expanded]="expandList">
-  <app-transactions-list [transactions$]="filteredTransactions$" [tags$]="tags$" [filters$]="filters$"
-  (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"
-  (tagAdditionRequested)="addTagToTransaction($event.tagName, $event.transactionId)"
-  (tagRemovalRequested)="removeTagFromTransaction($event.tagName, $event.transactionId)"
-  (tagColorChangeRequested)="changeTagColor($event.tagName, $event.color)"
-  (modeChanged)="onListModeChanged($event)"></app-transactions-list>
+  <div class="list-bar">
+    <div class="expand-button" (click)="toggleMode()">
+      <div class="arrow" [class.down]="expandList"></div>
+    </div>
+    <div class="tab-selector">
+      <div class="tab" [class.selected]="activeTab === 'Transakcje'" (click)="activeTab = 'Transakcje'">Transakcje</div>
+      <div class="tab" [class.selected]="activeTab === 'Filtry'" (click)="activeTab = 'Filtry'">Filtry</div>
+    </div>
+    <div class="new-tag">
+      <input type="text" class="form-control form-control-sm tag-input" placeholder="Nowy tag..."
+        (keyup.enter)="addNewTag(tagNameInput)" #tagNameInput/>
+    </div>
+    <div class="available-tags">
+      <app-tag *ngFor="let tag of tags" [tag]="tag" [tooltipDebounceTime]="1000" [allowChangeColor]="true" [allowDelete]="true"
+      (click)="tagClicked(tag)" (colorChangeRequested)="changeTagColor($event, tag.name)"
+      (removalRequested)="tagRemovalRequested(tag)"></app-tag>
+    </div>
+  </div>
+  <div class="list">
+    <div class="list-template" [hidden]="activeTab !== 'Transakcje'">
+      <app-transactions-list 
+      [transactions$]="transactionListData$"
+      [tagSelected$]="tagSelected_transactionsList$"
+      (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"></app-transactions-list>
+    </div>
+    <div class="list-template" [hidden]="activeTab !== 'Filtry'">
+      <app-filter-manager [tagSelected$]="tagSelected_filterManager$"></app-filter-manager>
+    </div>
+  </div>
 </div>

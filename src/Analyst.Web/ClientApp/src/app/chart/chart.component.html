@@ -1,4 +1,4 @@
-<div *ngIf="displayChart" class="wrapper">
+<div *ngIf="dataAvailable; else noData" class="wrapper">
   <div class="canvas-wrapper">
     <canvas baseChart
       [data]="pieChartData"
@@ -11,17 +11,24 @@
       (chartClick)="chartClicked($event)"></canvas>
   </div>
   <div class="summary">
-    <div *ngFor="let item of data; let i = index" class="tag-summary">
-      <div class="amount">{{ pieChartData[i] | number:'1.2-2' }} zł</div>
-      <span *ngIf="i < data.length - 1 || data.length === 1; else othersSummary" class="badge badge-pill tag"
-      [style.background-color]="pieChartColors[0].backgroundColor[i]"
-      (click)="onTagClicked(item.tag)">
-        {{ pieChartLabels[i] }}
-      </span>
-      <ng-template #othersSummary>
-        <span class="others">Inne</span>
-      </ng-template>
+    <div class="tags">
+      <ng-container *ngFor="let item of data">
+        <div *ngIf="item  !== othersDataItem" class="tag-summary">
+          <div class="amount">{{ item.spendings | number:'1.2-2' }} zł</div>
+          <app-tag [tag]="item.tag" [allowChangeColor]="true" [tooltipSide]="'right'"
+          (click)="onTagClicked(item.tag)"></app-tag>
+        </div>
+      </ng-container>
+    </div>
+    <div *ngIf="othersDataItem" class="tag-summary">
+      <div class="amount">{{ othersDataItem.spendings | number:'1.2-2' }} zł</div>
+      <span class="others" (click)="onTagClicked(othersDataItem.tag)">Inne</span>
     </div>
     <div class="amount total">{{ total | number:'1.2-2' }} zł</div>
   </div>
 </div>
+<ng-template #noData>
+  <div class="no-data-info">
+    <p>Brak danych do wyświetlenia</p>
+  </div>
+</ng-template>

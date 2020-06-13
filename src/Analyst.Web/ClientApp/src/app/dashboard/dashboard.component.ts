@@ -1,12 +1,18 @@
-import { FilterService } from './../services/filter.service';
-import { TagService } from './../services/tag.service';
-import { Transaction } from './../models/transaction.model';
+import { Account } from './../models/account.model';
+import { tap } from 'rxjs/operators/tap';
+import { flatMap } from 'rxjs/operators';
+import { ChartDataItem } from '../chart/chart-data-item.model';
+import { IBrowsingData } from '../models/browsing-data';
+import { BrowsingService } from '../services/browsing.service';
+import { Subject } from 'rxjs/Subject';
+import { TagService } from '../services/tag.service';
+import { Transaction } from '../models/transaction.model';
 import { Component, OnInit } from '@angular/core';
 import { TransactionService } from '../services/transaction.service';
-import { BehaviorSubject } from 'rxjs';
 import { Tag } from '../models/tag.model';
-import { Filter } from '../models/filter.model';
-import moment = require('moment');
+import * as moment from 'moment'
+import { forkJoin } from 'rxjs/observable/forkJoin';
+import { AccountService } from '../services/account.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,97 +20,317 @@ import moment = require('moment');
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-
-  transactions$: BehaviorSubject<Transaction[]> = new BehaviorSubject<Transaction[]>([]);
-  filteredTransactions$: BehaviorSubject<Transaction[]> = new BehaviorSubject<Transaction[]>([]);
-  tags$: BehaviorSubject<Tag[]> = new BehaviorSubject<Tag[]>([]);
-  filters$: BehaviorSubject<Filter[]> = new BehaviorSubject<Filter[]>([]);
+  calendarStartDate: Date;
+  browsingData: IBrowsingData;
+  chartData$: Subject<ChartDataItem[]> = new Subject<ChartDataItem[]>();
+  transactionListData$: Subject<Transaction[]> = new Subject<Transaction[]>();
+  tagSelected_transactionsList$: Subject<Tag> = new Subject<Tag>();
+  tagSelected_filterManager$: Subject<Tag> = new Subject<Tag>();
+  tags: Tag[];
   showCalendar: boolean;
   dateRange: {from: Date, to: Date };
   selectedTag: Tag;
+  selectedTransaction: Transaction;
   expandList: boolean = false;
+  activeTab: string = 'Transakcje';
+  loadingXml: boolean = false;
+  currentContextId: string;
+  accounts: Account[];
+  selectedAccounts: Account[];
+  showIncome: boolean = true;
+  showExpenses: boolean = true;
+  showIgnored: boolean = true;
+  showNotIgnored: boolean = true;
 
   constructor(
+    private browsingService: BrowsingService,
     private transactionService: TransactionService, 
     private tagService: TagService,
-    private filterService: FilterService
+    private accountService: AccountService,
     ) { }
 
   ngOnInit() {
     const today = new Date();
-    const days = 14;
-    this.dateRange = { to: new Date(), from: new Date(today.setDate(today.getDate() - days)) };
+    this.dateRange = { to: new Date(), from: new Date(today.setDate(1)) };
+    this.calendarStartDate = new Date(this.dateRange.from)
+    this.calendarStartDate.setMonth(this.calendarStartDate.getMonth() - 1);
+
     this.refresh();
+
+    this.browsingService.stateChange.subscribe(() => this.refresh());
   }
 
   onDateRangeChanged(dateRange: { from: Date, to: Date }) {
     this.dateRange = dateRange;
-    this.refresh();
+    this.calendarStartDate = new Date(this.dateRange.from)
+    this.calendarStartDate.setMonth(this.calendarStartDate.getMonth() - 1);
+    this.browsingService.browse(this.dateRange.from, this.dateRange.to, this.selectedAccounts.map(a => a.number))
+      .subscribe(browsingData => this.onBrowsingDataFetched(browsingData));
     this.showCalendar = false;
+    this.selectedTag = null;
+    this.currentContextId = null;
+  }
+
+  addMonths(value: number) {
+    const startDate = new Date(this.dateRange.from);
+    startDate.setMonth(startDate.getMonth() + value);
+    startDate.setDate(1);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1);
+    endDate.setDate(endDate.getDate() - 1);
+
+    this.onDateRangeChanged({from: startDate, to: endDate});
   }
 
   onFileSelected(file: any) {
-    this.transactionService.addTransactionsFromXml(file).subscribe(transactions => {
-      if (transactions.length > 0) {
-        this.transactions$.next(transactions);
+    this.transactionService.addTransactionsFromXml(file).subscribe(result => {
+      if (result.data.transactions.length > 0) {
         this.dateRange = { 
-          from: transactions.reduce((a, b) => moment(a).isBefore(b.orderDate) ? a : b.orderDate, transactions[0].orderDate), 
-          to: transactions.reduce((a, b) => moment(a).isAfter(b.orderDate) ? a : b.orderDate, transactions[0].orderDate)
-        }
-        this.refresh();
+          from: result.data.transactions.reduce((a, b) => 
+            moment(a).isBefore(b.transaction.orderDate) ? a : b.transaction.orderDate, 
+            result.data.transactions[0].transaction.orderDate), 
+          to: result.data.transactions.reduce((a, b) => 
+            moment(a).isAfter(b.transaction.orderDate) ? a : b.transaction.orderDate, 
+            result.data.transactions[0].transaction.orderDate)
+        };
+        this.currentContextId = result.uploadId;
+        this.onBrowsingDataFetched(result.data);
       }
+
+      this.loadingXml = false;
     });
+  
+    this.loadingXml = true;
   }
 
-  onTagClicked(tag: Tag) {
+  isAccountSelected(account: Account): boolean {
+    return this.selectedAccounts.findIndex(a => a.number === account.number) >= 0;
+  }
+
+  accountSelectionChanged(account: Account) {
+    const index = this.selectedAccounts.findIndex(a => a.number === account.number);
+
+    if (index >= 0) {
+      if (this.selectedAccounts.length === 1) {
+        return;
+      }
+
+      this.selectedAccounts.splice(index, 1);
+    } else {
+      this.selectedAccounts.push(account);
+    }
+
+    this.refresh();
+  }
+
+  incomeCheckboxClicked() {
+    this.showIncome = !this.showIncome;
+
+    this.publishData();
+  }
+
+  expensesCheckboxClicked() {
+    this.showExpenses = !this.showExpenses;
+    
+    this.publishData();
+  }
+
+  displayListOfIgnoredTransactions() {
+    this.showIgnored = true;
+    this.showNotIgnored = false;
+    this.expandList = true;
+
+    this.publishData();
+  }
+
+  displayListOfNotIgnoredTransactions() {
+    this.showIgnored = false;
+    this.showNotIgnored = true;
+    this.expandList = true;
+
+    this.publishData();
+  }
+
+  toggleMode() {
+    if (this.expandList) {
+      this.selectedTransaction = null;
+      this.selectedTag = null;
+      this.showIgnored = true;
+      this.showNotIgnored = true;
+      this.publishData();
+    }
+
+    this.expandList = !this.expandList;
+  }
+
+  tagClickedOnChart(tag: Tag) {
     if (!this.selectedTag || this.selectedTag.name !== tag.name) {
       this.selectedTag = tag;
+      this.expandList = true;
     } else {
       this.selectedTag = null;
     }
 
-    this.filterTransactions();
+    this.publishData();
+    this.activeTab = 'Transakcje';
+  }
+  
+  tagClicked(tag: Tag) {
+    if (this.activeTab === 'Transakcje') {
+      this.tagSelected_transactionsList$.next(tag);
+    } else if (this.activeTab === 'Filtry') {
+      this.tagSelected_filterManager$.next(tag);
+    }
   }
 
-  onListModeChanged(mode: 'edit' | 'browse') {
-    this.expandList = mode === 'edit';
+  addNewTag(inputElement: any) {
+    this.tagService.createTag(inputElement.value, 'gray')
+    .mergeMap(() => this.tagService.getTags())
+    .subscribe(tags => this.tags = tags);
+    inputElement.value = null;
+  }
+
+  changeTagColor(color: string, tagName: string) {
+    this.tagService.changeTagColor(tagName, color).subscribe();
+  }
+
+  tagRemovalRequested(tag: Tag) {
+    this.tagService.deleteTag(tag.name).subscribe();
   }
 
   changeTransactionIgnoreValue(transaction: Transaction) {
-    this.transactionService.setIgnoredValue(transaction.id, !transaction.ignored).subscribe(() => this.refresh());
+    if (transaction.ignored) {
+      this.transactionService.changeIgnoredValue(transaction.id, false).subscribe();
+    } else {
+      this.transactionService.changeIgnoredValue(transaction.id, true).subscribe()
+    }
   }
 
-  addTagToTransaction(tagName: string, transactionId: number) {
-    this.transactionService.addTagTotransaction(tagName, transactionId).subscribe(() => this.refresh());
-  }
+  private refresh(): void {
+    const browsing = this.currentContextId ? 
+      this.browsingService.browseByUploadId(this.currentContextId) :
+      this.accountService.getAccounts().pipe(
+        tap(accounts => {
+          this.accounts = accounts;
 
-  removeTagFromTransaction(tagName: string, transactionId: number) {
-    this.transactionService.removeTagFromTransaction(tagName, transactionId).subscribe(() => this.refresh());
-  }
+          if (!this.selectedAccounts) {
+            this.selectedAccounts = accounts;
+          }
+        }),
+        flatMap(_ => this.browsingService.browse(this.dateRange.from, this.dateRange.to, this.selectedAccounts.map(a => a.number)))
+      );
 
-  changeTagColor(tagName: string, color: string) {
-    this.tagService.changeTagColor(tagName, color).subscribe(() => this.refresh());
-  }
-
-  private refresh() {
-    this.transactionService.getTransactions(this.dateRange.from, this.dateRange.to).subscribe(x => {
-      this.transactions$.next(x);
-      this.filterTransactions();
+    forkJoin(
+      browsing,
+      this.tagService.getTags()
+    ).subscribe(([browsingData, tags]) => {
+      this.tags = tags;
+      this.onBrowsingDataFetched(browsingData);
     });
+  }
+
+  private onBrowsingDataFetched(browsingData: IBrowsingData) {
+    this.browsingData = browsingData;
+    this.mapTransactions();
+    this.publishData();
+  }
+
+  private mapTransactions() {
+    this.browsingData.transactions.forEach(t => {
+      if (!t.transaction.tags) {
+        t.transaction.tags = [];
+        const tags = t.tags.map(tagName => this.tags.find(tag => tag.name === tagName));
+        t.transaction.tags.push(...tags);
+      }
+
+      t.transaction.comment = t.comment;
+      t.transaction.ignored = t.ignored;
+    });
+  }
+
+  private publishData() {
+    let chartData = this.getChartData();
     
-    this.tagService.getAvailableTags().subscribe(x => {
-      this.tags$.next(x);
-    });
+    if (chartData.length === 0 && this.selectedTag) {
+      this.selectedTag = null;
+      chartData = this.getChartData();
+    }
+    
+    this.chartData$.next(chartData);
+    this.transactionListData$.next(this.getTransactionListData());
+  }
+  
+  private getChartData(): ChartDataItem[] {
+    if (!this.browsingData || !this.showExpenses || !this.showNotIgnored) {
+      return [];
+    }
 
-    this.filterService.getFilters().subscribe(x => {
-      this.filters$.next(x);
-    })
+    const array: ChartDataItem[] = [];
+    
+    if (!this.selectedTag) {
+      for (let tagName in this.browsingData.spendingsPerTag) {
+        const spendings = this.browsingData.spendingsPerTag[tagName];
+        
+        if (spendings > 0) {
+          array.push({
+            tag: this.tags.find(t => t.name === tagName),
+            transactions: [],
+            spendings: spendings
+          });
+        }
+      }
+  
+      if (this.browsingData.otherSpendings > 0) {
+        array.push({
+          tag: { name: 'Inne', color: 'lightgray' },
+          transactions: [],
+          spendings: this.browsingData.otherSpendings
+        });
+      }
+    } else {
+      array.push({
+        tag: this.selectedTag,
+        transactions: [],
+        spendings: this.selectedTag.name !== 'Inne' ?
+          this.browsingData.spendingsPerTag[this.selectedTag.name] : this.browsingData.otherSpendings
+      })
+    }
+
+    return array
+      .filter(x => x.spendings > 0)
+      .sort((a, b) => a.tag.name === 'Inne' ? 1 : b.spendings - a.spendings);
   }
 
-  private filterTransactions() {
-    const transactions = this.selectedTag && this.selectedTag.name !== 'Inne' ? 
-      this.filterService.filterTransactions(this.selectedTag.name, this.transactions$.value, this.filters$.value) :
-      this.transactions$.value;
-    this.filteredTransactions$.next(transactions);
+  private getTransactionListData(): Transaction[] {
+    if (!this.browsingData) {
+      return [];
+    }
+
+    let transactionsToShow = this.browsingData.transactions;
+
+    if (!this.showIncome) {
+      transactionsToShow = transactionsToShow.filter(t => t.transaction.amount < 0);
+    }
+
+    if (!this.showExpenses) {
+      transactionsToShow = transactionsToShow.filter(t => t.transaction.amount > 0);
+    }
+
+    if (!this.showIgnored) {
+      transactionsToShow = transactionsToShow.filter(t => !t.ignored);
+    }
+
+    if (!this.showNotIgnored) {
+      transactionsToShow = transactionsToShow.filter(t => t.ignored);      
+    }
+
+    if (this.selectedTag) {
+      return transactionsToShow
+        .map(t => t.transaction)
+        .filter(t => this.selectedTag.name !== 'Inne' ?
+          t.tags.findIndex(tag => tag.name === this.selectedTag.name) >= 0 : t.tags.length === 0);
+    } else {
+      return transactionsToShow.map(t => t.transaction);
+    }
   }
 }

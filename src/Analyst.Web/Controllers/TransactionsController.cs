@@ -14,52 +14,77 @@ namespace Analyst.Web.Controllers
     [Route("api/transactions")]
     public class TransactionsController : Controller
     {
+        private readonly BrowsingService browsingService;
         private readonly TransactionService transactionService;
         private readonly IStore<Transaction> transactionStore;
-        private readonly IStore<Tag> tagStore;
+        private readonly IStore<TransactionsUpload> uploadStore;
 
-        public TransactionsController(TransactionService transactionService, IStore<Transaction> transactionStore, IStore<Tag> tagStore)
+        public TransactionsController(BrowsingService browsingService, TransactionService transactionService, IStore<Transaction> transactionStore, IStore<TransactionsUpload> uploadStore)
         {
+            this.browsingService = browsingService;
             this.transactionService = transactionService;
             this.transactionStore = transactionStore;
-            this.tagStore = tagStore;
+            this.uploadStore = uploadStore;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetFilteredTransactions(DateTime? dateFrom, DateTime? dateTo, string type, string description, decimal? amountFrom, decimal? amountTo)
+        [HttpGet("upload/{uploadId}/browse")]
+        public async Task<IActionResult> BrowseTransactionsFromUpload(string uploadId)
         {
-            return Ok(await transactionStore.Query(q =>
-            {
-                if (dateFrom.HasValue)
-                    q = q.Where(x => x.OrderDate >= dateFrom.Value);
-                if (dateTo.HasValue)
-                    q = q.Where(x => x.OrderDate <= dateTo.Value);
-                if (!string.IsNullOrEmpty(type))
-                    q = q.Where(x => x.Type.Contains(type, StringComparison.InvariantCultureIgnoreCase));
-                if (!string.IsNullOrEmpty(description))
-                    q = q.Where(x => x.Description.Contains(description, StringComparison.InvariantCultureIgnoreCase));
-                if (amountFrom.HasValue)
-                    q = q.Where(x => x.Amount >= amountFrom.Value);
-                if (amountTo.HasValue)
-                    q = q.Where(x => x.Amount <= amountTo.Value);
+            var transactionsIds = (await uploadStore.Query(q => q.Where(x => x.Id == uploadId))).SingleOrDefault()?.TransactionsIds;
 
-                return q.OrderByDescending(x => x.OrderDate);
-            }));
+            var transactions = await transactionStore.Query(q => q.Where(x => transactionsIds.Contains(x.Id)));
+
+            return Ok(await browsingService.Browse(transactions));
+        }
+
+        [HttpGet("browse")]
+        public async Task<IActionResult> BrowseTransactions(DateTime? dateFrom, DateTime? dateTo, string[] accountNumbers)
+        {
+            var startDate = dateFrom.HasValue ? dateFrom.Value : DateTime.Today.AddDays(-14);
+            var endDate = dateTo.HasValue ? dateTo.Value : DateTime.Today;
+
+            var transactions = await transactionStore.Query(q => q
+                .Where(t => t.OrderDate >= startDate && t.OrderDate <= endDate)
+                .Where(t => accountNumbers.Contains(t.AccountNumber)));
+
+            return Ok(await browsingService.Browse(transactions));
         }
 
         [HttpPost("xml")]
         public async Task<IActionResult> LoadFromXml()
         {
-            Stream file = Request.Form.Files.First().OpenReadStream();
-            IEnumerable<Transaction> newTransactions = await transactionService.SaveTransactionsFromXml(file);
+            using (var file = Request.Form.Files.First().OpenReadStream())
+            {
+                var uploadIdAndTransactions = await transactionService.SaveTransactionsFromXml(file);
 
-            return Ok(newTransactions);
+                return Ok(new
+                {
+                    uploadIdAndTransactions.UploadId,
+                    Data = await browsingService.Browse(uploadIdAndTransactions.Transactions)
+                });
+            }
         }
 
         [HttpPost("{transactionId}/tags")]
-        public async Task<IActionResult> AddTag(int transactionId, [FromBody]string tagName)
+        public async Task<IActionResult> AddTag(int transactionId, [FromBody] string tagName)
         {
             await transactionService.AddTagToTransaction(transactionId, tagName);
+
+            return Ok();
+        }
+
+        [HttpPost("{transactionId}/comment")]
+        public async Task<IActionResult> EditComment(int transactionId, [FromBody] string text)
+        {
+            await transactionService.EditComment(transactionId, text);
+
+            return Ok();
+        }
+
+        [HttpPut("{transactionId}/ignored")]
+        public async Task<IActionResult> SetIgnoredValue(int transactionId, [FromBody] bool newValue)
+        {
+            await transactionService.SetIgnoredValue(transactionId, newValue);
 
             return Ok();
         }
@@ -67,15 +92,7 @@ namespace Analyst.Web.Controllers
         [HttpDelete("{transactionId}/tags/{tagName}")]
         public async Task<IActionResult> RemoveTag(int transactionId, string tagName)
         {
-            await transactionService.RemoveTagFromTransaction(tagName, transactionId);
-
-            return Ok();
-        }
-
-        [HttpPost("{transactionId}/ignored")]
-        public async Task<IActionResult> SetIgnored(int transactionId, [FromBody]bool value)
-        {
-            await transactionService.SetIgnoredValue(transactionId, value);
+            await transactionService.RemoveTagFromTransaction(transactionId, tagName);
 
             return Ok();
         }

@@ -1,62 +1,56 @@
-<div class="wrapper">
-  <div class="available-tags">
-    <div class="expand-button" (click)="toggleMode()">
-      <div class="arrow" [class.down]="editModeActive"></div>
-    </div>
-    <span *ngFor="let tag of tags" class="tag" (click)="addTagToSelectedTransaction(tag)">
-      <span class="badge badge-pill" [style.background-color]="tag.color">{{ tag.name }}</span>
-    </span>
-  </div>
-  <div class="list">
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col" style="width: 7em">Data</th>
-          <th scope="col" style="width: 8%">Typ</th>
-          <th scope="col" style="width: 47%">Opis</th>
-          <th scope="col" style="width: 6em">Kwota</th>
-          <th scope="col" style="width: 25%"></th>
-          <th scope="col" style="width: 5%"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let transaction of transactions" [class.ignored]="transaction.ignored" [class.selected]="selectedTransaction === transaction" 
-        (click)="transactionClicked(transaction)">
-          <td>{{ transaction.orderDate | date:'dd.MM.yyyy' }}</td>
-          <td>{{ transaction.type }}</td>
-          <td class="text-wrap">{{ transaction.description }}</td>
-          <td [class.text-danger]="transaction.amount < 0">{{ transaction.amount | number:'1.2-2' }}</td>
-          <td>
-            <div class="tag-input-wrapper">
-              <input type="text" class="form-control form-control-sm tag-input" (keyup.enter)="addNewTagTotransaction(tagNameInput, transaction.id)" #tagNameInput/>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col" style="width: 7em">Data</th>
+      <th scope="col" style="width: 8%">Typ</th>
+      <th scope="col" style="width: 55%">Opis</th>
+      <th scope="col" style="width: 6em">Kwota</th>
+      <th scope="col" style="width: 5%"></th>
+      <th scope="col" style="width: 12%"></th>
+      <th scope="col" style="width: 5%"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let transaction of transactions; let i = index" [class.ignored]="transaction.ignored" [class.selected]="selectedTransactionIndex === i" 
+    (click)="transactionClicked(i)">
+      <td>{{ transaction.orderDate | date:'dd.MM.yyyy' }}</td>
+      <td>{{ transaction.type }}</td>
+      <td class="text-wrap">{{ transaction.description }}</td>
+      <td [class.text-danger]="transaction.amount < 0">{{ transaction.amount | number:'1.2-2' }}</td>
+      <td>
+        <span class="comment" (mouseleave)="closeComment()">
+          <img class="comment-icon" 
+          [src]="transaction.comment ? '/assets/icons/comment-filled.png' : '/assets/icons/comment-empty.png'" 
+          (click)="commentIconClicked(transaction); $event.stopPropagation()"
+          (mouseenter)="commentIconHovered(transaction)" />
+          <div *ngIf="expandedCommentTransaction === transaction" class="comment-tooltip left"
+          (click)="$event.stopPropagation()">
+            <div *ngIf="!commentEdited; else commentEditMode">
+              {{ transaction.comment }}
+              <button class="btn btn-link edit-comment-button" (click)="editCommentRequested(transaction)">Edytuj</button>
+              <button class="btn btn-link remove-comment-button" (click)="removeComment(transaction)">Usuń</button>
             </div>
-            <div class="tags">
-              <span *ngFor="let tag of getTagsForTransaction(transaction)" class="tag" (mouseleave)="tagBlurred()">
-                <span class="badge badge-pill" [class.forbidden]="isTagForbidden(tag, transaction)"
-                  [style.background-color]="tag.color" (mouseenter)="tagHovered(tag.name, transaction.id)">
-                  {{ tag.name }}
-                </span>
-                <div *ngIf="isTagTooltipActive(tag.name, transaction.id)" class="tag-tooltip">
-                  <div *ngIf="isTagForbidden(tag, transaction); else notForbidden">
-                    Tag <i>{{ tag.name }}</i> spełnia warunki filtru, ale został usunięty 
-                    <button type="button" class="btn btn-link allow-tag-button" (click)="addTagToTransaction(tag, transaction)">Przywróć</button>
-                  </div>
-                  <ng-template #notForbidden>
-                    <input *ngIf="changingTagColor" type="text" class="form-control form-control-sm tag-color-input" autofocus (keyup.enter)="changeTagColor(tagColorInput, tag.name)" #tagColorInput />
-                    <button *ngIf="!changingTagColor" class="btn btn-link change-color-button" (click)="changeColorClicked()">Zmień kolor</button>
-                    <button *ngIf="!changingTagColor" class="btn btn-link remove-tag-button" (click)="removeTagFromTransaction(tag.name, transaction.id)">Usuń</button>
-                  </ng-template>
-                </div>
-              </span>
-            </div>
-          </td>
-          <td>
-            <div class="ignore-transaction" (click)="toggleIgnored(transaction)">
-              {{ transaction.ignored ? 'Przywróć' : 'Ignoruj' }}
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+            <ng-template #commentEditMode>
+              <form #commentForm="ngForm">
+                <input type="text" class="form-control form-control-sm comment-input" autofocus autocomplete="off"
+                id="commentInput" name="commentInput" #commentInput="ngModel" [(ngModel)]="commentText"
+                (keyup.enter)="onCommentEdited(transaction)" />
+              </form>
+            </ng-template>
+          </div>
+        </span>
+      </td>
+      <td>
+        <div class="tags">
+          <app-tag *ngFor="let tag of transaction.tags" [tag]="tag" [forbidden]="isTagForbidden(tag, transaction)" [allowChangeColor]="false" [allowDelete]="true"
+          (removalRequested)="removeTagFromTransaction(tag.name, transaction.id)"></app-tag>
+        </div>
+      </td>
+      <td>
+        <div class="ignore-transaction" (click)="toggleIgnored(transaction)">
+          {{ transaction.ignored ? 'Przywróć' : 'Ignoruj' }}
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

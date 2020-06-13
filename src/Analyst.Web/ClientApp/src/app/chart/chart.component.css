@@ -4,16 +4,20 @@
 
 .canvas-wrapper {
   position: relative;
-  width: 60%;
+  width: calc(2 * (80vh - 90px)); /* 2 = canvas width/height, 90px ~= menu + header */
   margin: 0 auto;
+  padding-top: 20px;
 }
 
 .summary {
   position: absolute;
-  top: 60px;
+  top: 40px;
   right: 60px;
   width: 27%;
   font-size: 14px;
+  height: 290px;
+  display: flex;
+  flex-direction: column;
 }
 
 .tag-summary {
@@ -41,3 +45,20 @@
   font-style: italic;
 }
 
+.no-data-info {
+  width: 100%;
+  height: 100%;
+  line-height: 100%;
+  text-align: center;
+  position: relative;
+}
+
+.no-data-info p {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: gray;
+  font-style: italic;
+  font-size: 18px;
+}

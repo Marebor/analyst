@@ -1,9 +1,10 @@
-import { Transaction } from './../models/transaction.model';
-import { FilterService } from './../services/filter.service';
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { TransactionService } from '../services/transaction.service';
+import { Transaction } from '../models/transaction.model';
+import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Tag } from '../models/tag.model';
-import { Filter } from '../models/filter.model';
+import { TagService } from '../services/tag.service';
+import 'rxjs/add/operator/mergeMap';
 
 @Component({
   selector: 'app-transactions-list',
@@ -12,122 +13,89 @@ import { Filter } from '../models/filter.model';
 })
 export class TransactionsListComponent implements OnInit {
   @Input() transactions$: Observable<Transaction[]>;
-  @Input() tags$: Observable<Tag[]>;
-  @Input() filters$: Observable<Filter[]>;
+  @Input() tagSelected$: Observable<Tag>;
   @Output() transactionIgnoreValueChanged: EventEmitter<Transaction> = new EventEmitter<Transaction>();
-  @Output() tagAdditionRequested: EventEmitter<{ tagName: string, transactionId: number }> = new EventEmitter<{ tagName: string, transactionId: number }>();
-  @Output() tagRemovalRequested: EventEmitter<{ tagName: string, transactionId: number }> = new EventEmitter<{ tagName: string, transactionId: number }>();
-  @Output() tagColorChangeRequested: EventEmitter<{ tagName: string, color: string }> = new EventEmitter<{ tagName: string, color: string }>();
-  @Output() modeChanged: EventEmitter<'edit' | 'browse'> = new EventEmitter<'edit' | 'browse'>();
-  filterAssignments: { transaction: Transaction, tags: Tag[] }[] = [];
-  selectedTransaction: Transaction;
   transactions: Transaction[];
   tags: Tag[];
-  filters: Filter[];
-  tagTooltipActive: { tagName: string, transactionId: number };
-  changingTagColor: boolean;
-  editModeActive: boolean = false;
+  selectedTransactionIndex: number;
+  expandedCommentTransaction: Transaction;
+  commentEdited: boolean = false;
+  commentText: string;
 
-  constructor(private filterService: FilterService) { }
+  constructor(private transactionService: TransactionService) {
+  }
 
   ngOnInit() {
-    this.transactions$.subscribe(x => {
-      this.transactions = x;
-      this.refresh();
+    this.tagSelected$.subscribe(tag => {
+      if (this.selectedTransactionIndex === null || this.selectedTransactionIndex === undefined) {
+        return;
+      }
+
+      const selectedTransaction = this.transactions.find((t, i) => i === this.selectedTransactionIndex);
+      
+      if (!selectedTransaction.tags.find(t => t.name === tag.name)) {
+        this.transactionService.addTagToTransaction(selectedTransaction.id, tag.name).subscribe();
+      }
     });
 
-    this.tags$.subscribe(x => {
-      this.tags = x;
-      this.refresh();
-    });
+    this.transactions$.subscribe(transactions => {
+      this.transactions = transactions;
 
-    this.filters$.subscribe(x => {
-      this.filters = x;
-      this.refresh();
+      if (this.selectedTransactionIndex && this.transactions.length <= this.selectedTransactionIndex) {
+        this.selectedTransactionIndex = this.transactions.length - 1;
+      }
     });
   }
 
-  toggleMode() {
-    if (this.editModeActive) {
-      this.selectedTransaction = null;
+  transactionClicked(transactionIndex: number) {
+    this.selectedTransactionIndex = this.selectedTransactionIndex === transactionIndex ? null : transactionIndex;
+  }
+
+  commentIconClicked(transaction: Transaction) {
+    this.expandedCommentTransaction = transaction;
+
+    if (!transaction.comment) {
+      this.editCommentRequested(transaction);
     }
-
-    this.editModeActive = !this.editModeActive;
-    this.modeChanged.emit(this.editModeActive ? 'edit' : 'browse');
   }
 
-  transactionClicked(transaction: Transaction) {
-    this.selectedTransaction = this.selectedTransaction === transaction ? null : transaction;
-  }
-
-  addTagToSelectedTransaction(tag: Tag) {
-    if (this.selectedTransaction) {
-      this.tagAdditionRequested.emit({ tagName: tag.name, transactionId: this.selectedTransaction.id });
+  commentIconHovered(transaction: Transaction) {
+    if (transaction.comment) {
+      this.expandedCommentTransaction = transaction;
     }
   }
 
   removeTagFromTransaction(tagName: string, transactionId: number) {
-    this.tagRemovalRequested.emit({ tagName, transactionId });
-  }
-
-  addNewTagTotransaction(inputElement: any, transactionId: number) {
-    this.tagAdditionRequested.emit({ tagName: inputElement.value, transactionId });
-    inputElement.value = null;
-  }
-
-  addTagToTransaction(tag: Tag, transaction: Transaction) {
-    this.tagAdditionRequested.emit({ tagName: tag.name, transactionId: transaction.id });
-  }
-
-  tagHovered(tagName: string, transactionId: number) {
-    this.tagTooltipActive = { tagName, transactionId };
-  }
-
-  tagBlurred() {
-    this.tagTooltipActive = null;
-    this.changingTagColor = false;
+    this.transactionService.removeTagFromTransaction(transactionId, tagName).subscribe();
   }
 
   isTagForbidden(tag: Tag, transaction: Transaction) {
-    return transaction.forbiddenTagNames.find(name => name === tag.name);
-  }
-
-  isTagTooltipActive(tagName: string, transactionId: number) {
-    return this.tagTooltipActive && this.tagTooltipActive.tagName === tagName && this.tagTooltipActive.transactionId === transactionId;
-  }
-
-  changeColorClicked() {
-    this.changingTagColor = true;
-  }
-
-  changeTagColor(tagColorInput: any, tagName: string) {
-    this.tagColorChangeRequested.emit({ tagName, color: tagColorInput.value });
-    tagColorInput.value = null;
-    this.changingTagColor = false;
-    this.tagTooltipActive = null;
-  }
-
-  getTagsForTransaction(transaction: Transaction): Tag[] {
-    const filterAssignment = this.filterAssignments.find(x => x.transaction.id === transaction.id);
-    return (filterAssignment ? filterAssignment.tags : [])
-      .concat(transaction.assignedTagNames
-        .map(tagName => this.tags.find(tag => tag.name === tagName))
-        .filter(tag => !!tag)
-      );
+    //return transaction.forbiddenTagNames.find(name => name === tag.name);
+    return false;
   }
 
   toggleIgnored(transaction: Transaction) {
     this.transactionIgnoreValueChanged.emit(transaction);
   }
 
-  private refresh() {
-    if (this.transactions && this.tags && this.filters) {
-      this.filterAssignments = this.transactions.map(transaction => {
-        return { transaction, tags: this.filterService
-          .getTagNames(transaction, this.filters)
-          .map(tagName => this.tags.find(tag => tag.name === tagName))
-          .filter(tag => !!tag) };
-      });
-    }
+  closeComment() {
+    this.expandedCommentTransaction = null;
+    this.commentEdited = false;
+    this.commentText = null;
+  }
+
+  editCommentRequested(transaction: Transaction) {
+    this.commentEdited = true;
+    this.commentText = transaction.comment;
+  }
+
+  onCommentEdited(transaction: Transaction) {
+    this.transactionService.editComment(transaction.id, this.commentText).subscribe();
+    this.closeComment();
+  }
+
+  removeComment(transaction: Transaction) {
+    this.transactionService.removeComment(transaction.id).subscribe();
+    this.closeComment();
   }
 }

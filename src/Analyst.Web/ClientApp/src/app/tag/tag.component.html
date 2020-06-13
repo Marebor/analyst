@@ -1,0 +1,18 @@
+<span class="tag" (mouseleave)="mouseLeft()">
+  <span class="badge" [class.badge-pill]="rounded" [class.forbidden]="forbidden"
+    [style.background-color]="tag.color" (mouseenter)="mouseEntered()">
+    {{ tag.name }}
+  </span>
+  <div *ngIf="showTooltip" class="tag-tooltip" [class.left]="tooltipSide === 'left'" [class.right]="tooltipSide === 'right'"
+  (click)="$event.stopPropagation()">
+    <div *ngIf="forbidden; else notForbidden">
+      Tag <i>{{ tag.name }}</i> spełnia warunki filtru, ale został usunięty 
+      <button type="button" class="btn btn-link allow-tag-button" (click)="restoreRequested()">Przywróć</button>
+    </div>
+    <ng-template #notForbidden>
+      <input *ngIf="changingTagColor" type="color" class="form-control form-control-sm tag-color-input" [value]="tag.color" (change)="onColorChangeRequested($event.target.value)" #tagColorInput />
+      <button *ngIf="!changingTagColor && allowChangeColor" class="btn btn-link change-color-button" (click)="changeColorClicked()">Zmień kolor</button>
+      <button *ngIf="!changingTagColor && allowDelete" class="btn btn-link remove-tag-button" (click)="onRemovalRequested()">Usuń</button>
+    </ng-template>
+  </div>
+</span>

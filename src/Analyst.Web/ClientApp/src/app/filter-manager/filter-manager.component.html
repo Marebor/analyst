@@ -1,0 +1,73 @@
+<div class="wrapper">
+  <div *ngIf="!newFilter; else edit" class="left-bar">
+    <img src="/assets/icons/add.svg" class="enabled" (click)="addingNewFilterRequested(scrollTarget)" />
+    <div class="button-wrapper" [class.d-none]="!selectedFilter" (mouseleave)="showDeleteFilterTooltip = false">
+      <img src="/assets/icons/delete.svg" class="enabled" (click)="deleteFilterRequested()" />
+      <div *ngIf="showDeleteFilterTooltip" class="delete-tooltip">
+        Czy na pewno usunąć wybrany filtr?
+        <button class="btn btn-link tooltip-delete-button" (click)="deleteSelectedFilter()">Usuń</button>
+      </div>
+    </div>
+  </div>
+  <ng-template #edit>
+    <div class="left-bar">
+      <img src="/assets/icons/accept.svg" [class.enabled]="newFilter.tags.length > 0 && newFilter.keywords.length > 0" (click)="confirmChanges()" />
+      <img src="/assets/icons/cancel.svg" class="enabled" (click)="cancelEditMode()" />
+    </div>
+  </ng-template>
+  <div class="content">
+    <table class="table">
+      <thead #scrollTarget>
+        <tr>
+          <th scope="col" style="width: 20%">Tagi</th>
+          <th scope="col" style="width: 60%">Wyrażenie</th>
+          <th scope="col" style="width: 20%"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="newFilter">
+          <ng-container [ngTemplateOutlet]="newFilterTemplate"></ng-container>
+        </tr>
+        <tr *ngFor="let filter of filters" [class.selected]="selectedFilter === filter && !editedFilter" 
+        (click)="filterClicked(filter, $event.target)">
+          <td>
+            <div *ngIf="!dataAvailable; else tags" class="loader"></div>
+            <ng-template #tags>
+              <div *ngFor="let tag of filter.tags">
+                <app-tag [tag]="tag" [allowChangeColor]="true" [tooltipSide]="'right'"
+                  [allowDelete]="true" (removalRequested)="tagRemovalRequested(filter, tag)"></app-tag>
+              </div>
+            </ng-template>
+          </td>
+          <td>
+            <app-tag *ngFor="let keyword of filter.keywords" [tag]="{ name: keyword, color: 'black' }" 
+              [allowChangeColor]="false" [allowDelete]="true" [rounded]="false"
+              (removalRequested)="keywordRemovalRequested(filter, keyword)"></app-tag>
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm expression" placeholder="Wyrażenie" name="keyword" (keyup.enter)="addKeyword(filter, expressionInput)" #expressionInput>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<ng-template #newFilterTemplate>
+  <td>
+    <div *ngIf="newFilter.tags.length > 0" class="tags-wrapper">
+      <app-tag *ngFor="let tag of newFilter.tags" 
+      [tag]="tag" [tooltipSide]="'right'" [allowChangeColor]="true" [allowDelete]="true"
+      (removalRequested)="tagRemovalRequested(newFilter, tag)"></app-tag>
+    </div>
+    <input type="text" class="form-control form-control-sm" autofocus placeholder="Nazwa taga" (keyup.enter)="addTagToEditedFilter(tagNameInput)" #tagNameInput />
+  </td>
+  <td>
+    <app-tag *ngFor="let keyword of newFilter.keywords" [tag]="{ name: keyword, color: 'black' }" 
+      [allowChangeColor]="false" [allowDelete]="true" [rounded]="false"
+      (removalRequested)="keywordRemovalRequested(newFilter, keyword)"></app-tag>
+  </td>
+  <td>
+    <input type="text" class="form-control form-control-sm expression" placeholder="Wyrażenie" name="keyword" (keyup.enter)="addKeyword(newFilter, expressionInput)" #expressionInput>
+  </td>
+</ng-template>

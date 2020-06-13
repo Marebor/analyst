@@ -1,54 +1,3 @@
-.wrapper {
-  position: relative;
-  height: 100%;
-  display: flex;
-  flex-flow: column;
-}
-
-.expand-button {
-  padding: 4px;
-  position: absolute;
-  left: 16px;
-  top: 20px;
-  cursor: pointer;
-}
-
-.arrow {
-  height: 16px;
-  width: 16px;
-  border-width: 2px 2px 0px 0px;
-  border-style: solid;
-  border-color: darkgray;
-  transform: rotate(-45deg);
-}
-
-.arrow.down {
-  transform: translateY(-5px) rotate(135deg);
-}
-
-.arrow:hover {
-  border-color: cornflowerblue;
-}
-
-.available-tags {
-  padding-left: 50px;
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background-color: white;
-  padding: 10px;
-  box-shadow: 0px 10px 12px -5px rgba(0,0,0,0.08);
-}
-
-.list {
-  overflow-y: auto;
-  height: 100%;
-}
-
 table {
   table-layout: fixed;
   word-wrap: break-word;
@@ -70,84 +19,15 @@ td {
   background-color: lightblue;
 }
 
-.tag-input-wrapper {
-  width: 30%;
-  display: inline-flex;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.tag-input {
-  display: inline-block;
-  margin-right: 20px;
+.comment-icon {
+  cursor: pointer;
+  width: 26px;
 }
 
 .tags {
   width: 65%;
   display: inline-flex;
   flex-wrap: wrap;
-  margin-left: 30%;
-}
-
-.tag {
-  position: relative;
-  color: white;
-  padding: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.tag.forbidden, .ignored .tag  {
-  filter: opacity(0.3);
-}
-
-.tag-tooltip {
-  z-index: 100;
-  position: absolute;
-  background-color: black;
-  left: 0;
-  top: 0;
-  transform: translateX(-100%) translateY(-5px);
-  padding: 5px 5px 5px 15px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.tag-tooltip::after {
-  content: " ";
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: black transparent transparent transparent;
-  transform: translate(5px, -5px) rotate(-90deg);
-}
-
-.change-color-button {
-  color: white;
-  font-size: 12px;
-  font-style: italic;
-}
-
-.remove-tag-button {
-  color: orangered;
-  font-size: 12px;
-  font-style: italic;
-  font-weight:  bold;
-}
-
-.tag-color-input {
-  width: auto;
-}
-
-.allow-tag-button {
-  color: lightgreen;
-  font-size: 12px;
-  font-style: italic;
 }
 
 .ignore-transaction {
@@ -166,4 +46,70 @@ td {
 
 .text-wrap {
   word-wrap: break-word;
+}
+
+.comment {
+  position: relative;
+  color: white;
+  padding: 5px;
+  font-size: 16px;
+}
+
+.comment-tooltip {
+  z-index: 100;
+  position: absolute;
+  background-color: black;
+  color: white;
+  top: 0;
+  padding: 5px 5px 5px 15px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.comment-tooltip.left {
+  left: 0;
+  transform: translateX(-100%) translateY(-3px);
+}
+
+.comment-tooltip.right {
+  right: 0;
+  transform: translateX(101%) translateY(-3px);
+}
+
+.comment-tooltip::after {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  /* margin-left: -5px; */
+  border-width: 5px;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+}
+
+.comment-tooltip.left::after {
+  right: 0;
+  transform: translate(9px, -5px) rotate(-90deg);
+}
+
+.comment-tooltip.right::after {
+  left: -15px;
+  transform: translate(5px, -5px) rotate(90deg);
+}
+
+.edit-comment-button {
+  color: white;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.remove-comment-button {
+  color: orangered;
+  font-size: 12px;
+  font-style: italic;
+  font-weight:  bold;
+}
+
+.comment-input {
+  width: auto;
 }

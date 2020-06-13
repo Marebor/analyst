@@ -16,6 +16,28 @@ namespace Analyst.Core.Services
             this.tagStore = tagStore;
         }
 
+        public async Task<Tag> CreateTag(string tagName, string color)
+        {
+            var tag = await GetTagByName(tagName);
+
+            if (tag != null)
+            {
+                throw new Exception($"Tag {tagName} already exist.");
+            }
+
+            return await tagStore.Save(new Tag { Name = tagName, Color = color });
+        }
+
+        public async Task DeleteTag(string tagName)
+        {
+            var tag = await GetTagByName(tagName);
+
+            if (tag != null)
+            {
+                await tagStore.Delete(tag);
+            }
+        }
+
         public async Task ChangeTagColor(string tagName, string color)
         {
             var tag = await GetTagByName(tagName);
@@ -30,10 +52,10 @@ namespace Analyst.Core.Services
             await tagStore.Save(tag);
         }
 
-        private async Task<Tag> GetTagByName(string tagName, Expression<Func<Tag, bool>> additionalFilter = null)
+        public async Task<Tag> GetTagByName(string tagName, Expression<Func<Tag, bool>> additionalFilter = null)
             => (await tagStore.Query(q => q
                 .Where(x => x.Name == tagName)
                 .Where(additionalFilter == null ? x => true : additionalFilter)))
-                .FirstOrDefault();
+                .SingleOrDefault();
     }
 }
