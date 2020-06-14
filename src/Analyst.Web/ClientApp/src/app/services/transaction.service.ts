@@ -33,6 +33,14 @@ export class TransactionService {
     );
   }
 
+  removeTagFromTransaction(transactionId: number, tagName: string): Observable<void> {
+    return this.httpClient.delete<void>(
+      `${this.originUrl}api/transactions/${transactionId}/tags/${tagName}`
+    ).pipe(
+      tap(() => this.browsingService.stateChange.next())
+    );
+  }
+
   changeIgnoredValue(transactionId: number, ignored: boolean): Observable<void> {
     return this.httpClient.put<void>(
       `${this.originUrl}api/transactions/${transactionId}/ignored`,

@@ -88,5 +88,13 @@ namespace Analyst.Web.Controllers
 
             return Ok();
         }
+
+        [HttpDelete("{transactionId}/tags/{tagName}")]
+        public async Task<IActionResult> RemoveTag(int transactionId, string tagName)
+        {
+            await transactionService.RemoveTagFromTransaction(transactionId, tagName);
+
+            return Ok();
+        }
     }
 }

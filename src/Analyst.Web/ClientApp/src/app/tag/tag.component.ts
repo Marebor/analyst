@@ -9,7 +9,6 @@ import { Tag } from '../models/tag.model';
 })
 export class TagComponent {
   @Input() tag: Tag
-  @Input() forbidden: boolean;
   @Input() tooltipDebounceTime: number = 0;
   @Input() tooltipSide: string = 'left';
   @Input() allowDelete: boolean;

@@ -83,7 +83,10 @@ namespace Analyst.Core.Services
         {
             foreach (var filter in filters)
             {
-                var filteredTransactions = filter.Apply(tagsPerTransaction.Keys);
+                var transactionsWithoutTagsAssigned = tagsPerTransaction
+                    .Where(x => x.Value.Count == 0)
+                    .Select(x => x.Key);
+                var filteredTransactions = filter.Apply(transactionsWithoutTagsAssigned);
 
                 foreach (var transaction in filteredTransactions)
                 {

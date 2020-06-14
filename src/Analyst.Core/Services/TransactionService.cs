@@ -114,6 +114,39 @@ namespace Analyst.Core.Services
             await tagSuppressionStore.Delete(suppressionsToDelete);
         }
 
+        public async Task RemoveTagFromTransaction(int transactionId, string tagName)
+        {
+            var transaction = (await transactionStore.Query(q => q.Where(t => t.Id == transactionId))).SingleOrDefault();
+
+            if (transaction == null)
+            {
+                throw new Exception($"Transaction with id = {transactionId} does not exist.");
+            }
+
+            var tag = await tagService.GetTagByName(tagName);
+
+            if (tag is null)
+            {
+                throw new Exception($"Tag with name {tagName} does not exist.");
+            }
+
+            var tagAssignment = (await tagAssignmentStore.Query(q => q.Where(x => x.TagName == tagName && x.TransactionId == transactionId))).SingleOrDefault();
+            var tagSuppression = (await tagSuppressionStore.Query(q => q.Where(x => x.TagName == tagName && x.TransactionId == transactionId))).SingleOrDefault();
+
+            if (tagAssignment is null && tagSuppression is null)
+            {
+                await tagSuppressionStore.Save(new TagSuppression
+                {
+                    TransactionId = transactionId,
+                    TagName = tagName,
+                });
+            }
+            else if (tagAssignment != null)
+            {
+                await tagAssignmentStore.Delete(tagAssignment);
+            }
+        }
+
         public async Task SetIgnoredValue(int transactionId, bool newValue)
         {
             var transaction = (await transactionStore.Query(q => q.Where(t => t.Id == transactionId))).SingleOrDefault();

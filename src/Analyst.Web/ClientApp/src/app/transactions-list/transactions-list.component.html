@@ -42,7 +42,7 @@
       </td>
       <td>
         <div class="tags">
-          <app-tag *ngFor="let tag of transaction.tags" [tag]="tag" [forbidden]="isTagForbidden(tag, transaction)" [allowChangeColor]="false" [allowDelete]="true"
+          <app-tag *ngFor="let tag of transaction.tags" [tag]="tag" [allowChangeColor]="false" [allowDelete]="true"
           (removalRequested)="removeTagFromTransaction(tag.name, transaction.id)"></app-tag>
         </div>
       </td>

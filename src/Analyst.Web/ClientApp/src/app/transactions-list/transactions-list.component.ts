@@ -69,19 +69,7 @@ export class TransactionsListComponent implements OnInit {
   }
 
   removeTagFromTransaction(tagName: string, transactionId: number) {
-    const transaction = this.transactions.find(t => t.id === transactionId);
-    
-    if (transaction.tags.length === 1 && transaction.tags[0].name === tagName) {
-      this.transactionService.saveTransactionTags(
-        transaction.id, 
-        [{ name: tagName, amount: 0 }])
-      .subscribe();
-    }
-  }
-
-  isTagForbidden(tag: Tag, transaction: Transaction) {
-    //return transaction.forbiddenTagNames.find(name => name === tag.name);
-    return false;
+    this.transactionService.removeTagFromTransaction(transactionId, tagName).subscribe();
   }
 
   toggleIgnored(transaction: Transaction) {
