@@ -21,6 +21,8 @@ export class TransactionsListComponent implements OnInit {
   expandedCommentTransaction: Transaction;
   commentEdited: boolean = false;
   commentText: string;
+  editedTags: Tag[];
+  temp_preventTransactionClick: boolean = false; // quick fix
 
   constructor(private transactionService: TransactionService) {
   }
@@ -38,6 +40,9 @@ export class TransactionsListComponent implements OnInit {
           selectedTransaction.id, 
           [{ name: tag.name, amount: Math.abs(selectedTransaction.amount) }])
         .subscribe();
+      } else {
+        this.editedTags = JSON.parse(JSON.stringify(selectedTransaction.tags));
+        this.editedTags.push(Object.assign({}, tag));
       }
     });
 
@@ -51,7 +56,12 @@ export class TransactionsListComponent implements OnInit {
   }
 
   transactionClicked(transactionIndex: number) {
-    this.selectedTransactionIndex = this.selectedTransactionIndex === transactionIndex ? null : transactionIndex;
+    if (!this.temp_preventTransactionClick) {
+      this.selectedTransactionIndex = this.selectedTransactionIndex === transactionIndex ? null : transactionIndex;
+      this.editedTags = null;
+    } else {
+      this.temp_preventTransactionClick = false;
+    }
   }
 
   commentIconClicked(transaction: Transaction) {
@@ -68,8 +78,42 @@ export class TransactionsListComponent implements OnInit {
     }
   }
 
+  saveEditedTags() {
+    if (this.selectedTransactionIndex === undefined || this.selectedTransactionIndex === null) {
+      return;
+    }
+
+    const selectedTransaction = this.transactions.find((t, i) => i === this.selectedTransactionIndex);
+
+    this.transactionService.saveTransactionTags(
+      selectedTransaction.id, 
+      this.editedTags)
+    .subscribe(_ => this.editedTags = null);
+  }
+
+  editTransactionTags(transaction: Transaction) {
+    const index = this.transactions.indexOf(transaction);
+
+    this.selectedTransactionIndex = index;
+    this.temp_preventTransactionClick = true;
+
+    this.editedTags = JSON.parse(JSON.stringify(transaction.tags))
+  }
+
   removeTagFromTransaction(tagName: string, transactionId: number) {
     this.transactionService.removeTagFromTransaction(transactionId, tagName).subscribe();
+  }
+
+  displayTagAmount(transaction: Transaction) {
+    return transaction.tags.length > 1 || (transaction.tags.length === 1 && Math.abs(transaction.tags[0].amount) !== Math.abs(transaction.amount));
+  }
+
+  displayOthersAmount(transaction: Transaction) {
+    return transaction.tags.length > 0 && this.getOthersAmount(transaction) > 0;
+  }
+
+  getOthersAmount(transaction: Transaction) {
+    return Math.abs(transaction.amount) - transaction.tags.reduce((sum, tag) => sum += tag.amount, 0);
   }
 
   toggleIgnored(transaction: Transaction) {

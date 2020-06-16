@@ -336,8 +336,14 @@ export class DashboardComponent implements OnInit {
     if (this.selectedTag) {
       return transactionsToShow
         .map(t => t.transaction)
-        .filter(t => this.selectedTag.name !== 'Inne' ?
-          t.tags.findIndex(tag => tag.name === this.selectedTag.name) >= 0 : t.tags.length === 0);
+        .filter(t => {
+          if (this.selectedTag.name !== 'Inne') {
+            return t.tags.findIndex(tag => tag.name === this.selectedTag.name) >= 0;
+          } else {
+            return t.tags.length === 0 || 
+              Math.abs(t.tags.reduce((sum, tag) => sum += tag.amount, 0)) < Math.abs(t.amount);
+          }
+        });
     } else {
       return transactionsToShow.map(t => t.transaction);
     }

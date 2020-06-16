@@ -102,16 +102,17 @@ namespace Analyst.Core.Services
             var assignmentsToDelete = tagAssignments
                 .Where(x => !newAssignments
                     .Select(y => y.TagName)
-                    .Contains(x.TagName));
+                    .Contains(x.TagName) ||
+                    newAssignments.Any(a => a.TagName == x.TagName && a.Amount != x.Amount));
 
             var suppressionsToDelete = tagSuppressions
                 .Where(x => newAssignments
                     .Select(y => y.TagName)
                     .Contains(x.TagName));
 
-            await tagAssignmentStore.Save(newAssignments);
             await tagAssignmentStore.Delete(assignmentsToDelete);
             await tagSuppressionStore.Delete(suppressionsToDelete);
+            await tagAssignmentStore.Save(newAssignments);
         }
 
         public async Task RemoveTagFromTransaction(int transactionId, string tagName)

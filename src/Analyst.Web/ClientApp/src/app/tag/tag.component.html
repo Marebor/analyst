@@ -1,4 +1,4 @@
-<span class="tag" (mouseleave)="mouseLeft()">
+<span class="tag" (mouseleave)="mouseLeft()" (click)="$event.stopPropagation()">
   <span class="badge" [class.badge-pill]="rounded" [class.forbidden]="forbidden"
     [style.background-color]="tag.color" (mouseenter)="mouseEntered()">
     {{ tag.name }}
@@ -7,6 +7,7 @@
   (click)="$event.stopPropagation()">
     <input *ngIf="changingTagColor" type="color" class="form-control form-control-sm tag-color-input" [value]="tag.color" (change)="onColorChangeRequested($event.target.value)" #tagColorInput />
     <button *ngIf="!changingTagColor && allowChangeColor" class="btn btn-link change-color-button" (click)="changeColorClicked()">Zmień kolor</button>
+    <button *ngIf="!changingTagColor && allowEdit" class="btn btn-link change-color-button" (click)="onEditRequested()">Edytuj</button>
     <button *ngIf="!changingTagColor && allowDelete" class="btn btn-link remove-tag-button" (click)="onRemovalRequested()">Usuń</button>
   </div>
 </span>
