@@ -9,10 +9,6 @@
   cursor: pointer;
 }
 
-.tag.forbidden {
-  filter: opacity(0.3);
-}
-
 .tag-tooltip {
   z-index: 100;
   position: absolute;
