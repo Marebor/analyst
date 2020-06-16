@@ -3,14 +3,16 @@ using System;
 using Analyst.Web.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Analyst.Web.Migrations
 {
     [DbContext(typeof(AnalystDbContext))]
-    partial class AnalystDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200612173245_TagAssignmentsWithAmount")]
+    partial class TagAssignmentsWithAmount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

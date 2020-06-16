@@ -66,9 +66,9 @@ namespace Analyst.Web.Controllers
         }
 
         [HttpPost("{transactionId}/tags")]
-        public async Task<IActionResult> AddTag(int transactionId, [FromBody] string tagName)
+        public async Task<IActionResult> UpdateTags(int transactionId, [FromBody] IEnumerable<TagReadModel> tags)
         {
-            await transactionService.AddTagToTransaction(transactionId, tagName);
+            await transactionService.SaveTransactionTags(transactionId, tags);
 
             return Ok();
         }

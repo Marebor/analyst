@@ -239,7 +239,16 @@ export class DashboardComponent implements OnInit {
     this.browsingData.transactions.forEach(t => {
       if (!t.transaction.tags) {
         t.transaction.tags = [];
-        const tags = t.tags.map(tagName => this.tags.find(tag => tag.name === tagName));
+        const tags = t.tags
+          .map(t => {
+            const originalTag = this.tags.find(tag => tag.name === t.name);
+
+            return {
+              name: originalTag.name,
+              color: originalTag.color,
+              amount: t.amount,
+            };
+          });
         t.transaction.tags.push(...tags);
       }
 
@@ -282,7 +291,7 @@ export class DashboardComponent implements OnInit {
   
       if (this.browsingData.otherSpendings > 0) {
         array.push({
-          tag: { name: 'Inne', color: 'lightgray' },
+          tag: { name: 'Inne', color: 'lightgray', amount: this.browsingData.otherSpendings },
           transactions: [],
           spendings: this.browsingData.otherSpendings
         });
@@ -327,8 +336,14 @@ export class DashboardComponent implements OnInit {
     if (this.selectedTag) {
       return transactionsToShow
         .map(t => t.transaction)
-        .filter(t => this.selectedTag.name !== 'Inne' ?
-          t.tags.findIndex(tag => tag.name === this.selectedTag.name) >= 0 : t.tags.length === 0);
+        .filter(t => {
+          if (this.selectedTag.name !== 'Inne') {
+            return t.tags.findIndex(tag => tag.name === this.selectedTag.name) >= 0;
+          } else {
+            return t.tags.length === 0 || 
+              Math.abs(t.tags.reduce((sum, tag) => sum += tag.amount, 0)) < Math.abs(t.amount);
+          }
+        });
     } else {
       return transactionsToShow.map(t => t.transaction);
     }

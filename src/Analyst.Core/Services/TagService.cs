@@ -1,6 +1,7 @@
 ﻿using Analyst.Core.Models;
 using Analyst.Core.Services.Abstract;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -57,5 +58,10 @@ namespace Analyst.Core.Services
                 .Where(x => x.Name == tagName)
                 .Where(additionalFilter == null ? x => true : additionalFilter)))
                 .SingleOrDefault();
+
+        public async Task<IReadOnlyCollection<Tag>> GetTagsByName(IEnumerable<string> tagNames, Expression<Func<Tag, bool>> additionalFilter = null)
+            => (await tagStore.Query(q => q
+                .Where(x => tagNames.Contains(x.Name))
+                .Where(additionalFilter == null ? x => true : additionalFilter)));
     }
 }

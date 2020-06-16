@@ -24,12 +24,6 @@ td {
   width: 26px;
 }
 
-.tags {
-  width: 65%;
-  display: inline-flex;
-  flex-wrap: wrap;
-}
-
 .ignore-transaction {
   position: absolute;
   right: 20px;
@@ -112,4 +106,19 @@ td {
 
 .comment-input {
   width: auto;
+}
+
+.tag-amount {
+  font-size: 10px;
+  color: gray;
+}
+
+.tag-amount-form {
+  width: 5rem;
+  display: inline-block;
+}
+
+.others {
+  margin-left: 10px;
+  font-style: italic;
 }

@@ -23,10 +23,10 @@ export class TransactionService {
     return this.httpClient.post<IUploadResult>(`${this.originUrl}api/transactions/xml`, formData);
   }
 
-  addTagToTransaction(transactionId: number, tagName: string): Observable<void> {
+  saveTransactionTags(transactionId: number, tags: { name: string, amount: number }[]): Observable<void> {
     return this.httpClient.post<void>(
       `${this.originUrl}api/transactions/${transactionId}/tags`,
-      `\"${tagName}\"`, 
+      tags, 
       { headers: { 'Content-Type': 'application/json' } }
     ).pipe(
       tap(() => this.browsingService.stateChange.next())

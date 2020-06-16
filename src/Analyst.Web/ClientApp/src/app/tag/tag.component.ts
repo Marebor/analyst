@@ -9,12 +9,13 @@ import { Tag } from '../models/tag.model';
 })
 export class TagComponent {
   @Input() tag: Tag
-  @Input() forbidden: boolean;
   @Input() tooltipDebounceTime: number = 0;
   @Input() tooltipSide: string = 'left';
+  @Input() allowEdit: boolean;
   @Input() allowDelete: boolean;
   @Input() allowChangeColor: boolean;
   @Input() rounded: boolean = true;
+  @Output() editRequested: EventEmitter<void> = new EventEmitter<void>();
   @Output() removalRequested: EventEmitter<void> = new EventEmitter<void>();
   showTooltip: boolean;
   changingTagColor: boolean;
@@ -56,6 +57,10 @@ export class TagComponent {
     this.tagService.changeTagColor(this.tag.name, newColor).subscribe();
     this.changingTagColor = false;
     this.showTooltip = false;
+  }
+
+  onEditRequested() {
+    this.editRequested.emit();
   }
 
   onRemovalRequested() {

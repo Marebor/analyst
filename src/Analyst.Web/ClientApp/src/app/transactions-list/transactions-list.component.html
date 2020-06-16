@@ -3,10 +3,10 @@
     <tr>
       <th scope="col" style="width: 7em">Data</th>
       <th scope="col" style="width: 8%">Typ</th>
-      <th scope="col" style="width: 55%">Opis</th>
+      <th scope="col" [style.width]="editedTags ? '50%' : '54%'">Opis</th>
       <th scope="col" style="width: 6em">Kwota</th>
       <th scope="col" style="width: 5%"></th>
-      <th scope="col" style="width: 12%"></th>
+      <th scope="col" [style.width]="editedTags ? '17%' : '13%'"></th>
       <th scope="col" style="width: 5%"></th>
     </tr>
   </thead>
@@ -41,10 +41,29 @@
         </span>
       </td>
       <td>
-        <div class="tags">
-          <app-tag *ngFor="let tag of transaction.tags" [tag]="tag" [forbidden]="isTagForbidden(tag, transaction)" [allowChangeColor]="false" [allowDelete]="true"
-          (removalRequested)="removeTagFromTransaction(tag.name, transaction.id)"></app-tag>
+        <div *ngIf="!editedTags || selectedTransactionIndex !== i; else tagsEdit">
+          <div *ngFor="let tag of transaction.tags" class="d-flex align-items-center justify-content-between">
+            <app-tag [tag]="tag" [allowEdit]="true" [allowDelete]="true"
+            (click)="$event.stopPropagation()"
+            (editRequested)="editTransactionTags(transaction)"
+            (removalRequested)="removeTagFromTransaction(tag.name, transaction.id)"></app-tag>
+            <div *ngIf="displayTagAmount(transaction)" class="tag-amount">{{ tag.amount | number:'1.2-2' }}</div>
+          </div>
+          <div *ngIf="displayOthersAmount(transaction)" class="d-flex align-items-center justify-content-between">
+            <div class="others">Inne</div>
+            <div class="tag-amount">{{ getOthersAmount(transaction) | number:'1.2-2' }}</div>
+          </div>
         </div>
+        <ng-template #tagsEdit>
+          <div *ngFor="let tag of editedTags" class="d-flex align-items-center justify-content-between">
+            <app-tag [tag]="tag" [allowChangeColor]="false" [allowDelete]="false"></app-tag>
+            <form class="tag-amount-form" #tagEditForm="ngForm" (click)="$event.stopPropagation()">
+              <input type="number" class="form-control form-control-sm" autofocus autocomplete="off"
+              id="tagEditInput" name="tagEditInput" #tagEditInput="ngModel" [(ngModel)]="tag.amount"
+              (keyup.enter)="saveEditedTags()" />
+            </form>
+          </div>
+        </ng-template>
       </td>
       <td>
         <div class="ignore-transaction" (click)="toggleIgnored(transaction)">
