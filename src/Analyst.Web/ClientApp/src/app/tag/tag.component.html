@@ -1,4 +1,4 @@
-<span class="tag" (mouseleave)="mouseLeft()" (click)="$event.stopPropagation()">
+<span class="tag" (mouseleave)="mouseLeft()">
   <span class="badge" [class.badge-pill]="rounded"
     [style.background-color]="tag.color" (mouseenter)="mouseEntered()">
     {{ tag.name }}
