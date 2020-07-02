@@ -3,15 +3,14 @@
     <tr>
       <th scope="col" style="width: 7em">Data</th>
       <th scope="col" style="width: 8%">Typ</th>
-      <th scope="col" [style.width]="editedTags ? '50%' : '54%'">Opis</th>
+      <th scope="col" [style.width]="editedTags ? '55%' : '59%'">Opis</th>
       <th scope="col" style="width: 6em">Kwota</th>
       <th scope="col" style="width: 5%"></th>
       <th scope="col" [style.width]="editedTags ? '17%' : '13%'"></th>
-      <th scope="col" style="width: 5%"></th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let transaction of transactions; let i = index" [class.ignored]="transaction.ignored" [class.selected]="selectedTransactionIndex === i" 
+    <tr *ngFor="let transaction of transactions; let i = index" [class.ignored]="isIgnored(transaction)" [class.selected]="selectedTransactionIndex === i" 
     (click)="transactionClicked(i)">
       <td>{{ transaction.orderDate | date:'dd.MM.yyyy' }}</td>
       <td>{{ transaction.type }}</td>
@@ -47,7 +46,7 @@
             (click)="$event.stopPropagation()"
             (editRequested)="editTransactionTags(transaction)"
             (removalRequested)="removeTagFromTransaction(tag.name, transaction.id)"></app-tag>
-            <div *ngIf="displayTagAmount(transaction)" class="tag-amount">{{ tag.amount | number:'1.2-2' }}</div>
+            <div *ngIf="displayTagAmount(transaction)" class="tag-amount" [class.ignored]="tag.name === 'IGNORE'">{{ tag.amount | number:'1.2-2' }}</div>
           </div>
           <div *ngIf="displayOthersAmount(transaction)" class="d-flex align-items-center justify-content-between">
             <div class="others">Inne</div>
@@ -64,11 +63,6 @@
             </form>
           </div>
         </ng-template>
-      </td>
-      <td>
-        <div class="ignore-transaction" (click)="toggleIgnored(transaction)">
-          {{ transaction.ignored ? 'Przywróć' : 'Ignoruj' }}
-        </div>
       </td>
     </tr>
   </tbody>

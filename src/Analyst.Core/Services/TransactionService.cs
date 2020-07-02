@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 
 namespace Analyst.Core.Services
 {
-    public class TransactionService :
-        IHandle<IgnoreTransactions>
+    public class TransactionService
     {
         IStore<Transaction> transactionStore;
         IStore<TransactionsUpload> uploadStore;
@@ -19,7 +18,6 @@ namespace Analyst.Core.Services
         IStore<TagAssignment> tagAssignmentStore;
         IStore<TagSuppression> tagSuppressionStore;
         IStore<Comment> commentStore;
-        IStore<TransactionIgnore> ignoredTransactionsStore;
 
         public TransactionService(
             IStore<Transaction> transactionStore,
@@ -28,8 +26,7 @@ namespace Analyst.Core.Services
             MessageBus messageBus,
             IStore<TagAssignment> tagAssignmentStore, 
             IStore<TagSuppression> tagSuppressionStore, 
-            IStore<Comment> commentStore,
-            IStore<TransactionIgnore> ignoredTransactionsStore)
+            IStore<Comment> commentStore)
         {
             this.transactionStore = transactionStore;
             this.uploadStore = uploadStore;
@@ -38,7 +35,6 @@ namespace Analyst.Core.Services
             this.tagAssignmentStore = tagAssignmentStore;
             this.tagSuppressionStore = tagSuppressionStore;
             this.commentStore = commentStore;
-            this.ignoredTransactionsStore = ignoredTransactionsStore;
         }
 
         public async Task<(string UploadId, IEnumerable<Transaction> Transactions)> SaveTransactionsFromXml(Stream xml)
@@ -148,27 +144,6 @@ namespace Analyst.Core.Services
             }
         }
 
-        public async Task SetIgnoredValue(int transactionId, bool newValue)
-        {
-            var transaction = (await transactionStore.Query(q => q.Where(t => t.Id == transactionId))).SingleOrDefault();
-
-            if (transaction == null)
-            {
-                throw new Exception($"Transaction with id = {transactionId} does not exist.");
-            }
-
-            var ignore = (await ignoredTransactionsStore.Query(q => q.Where(t => t.TransactionId == transactionId))).SingleOrDefault();
-
-            if (newValue == true && ignore == null)
-            {
-                await ignoredTransactionsStore.Save(new TransactionIgnore { TransactionId = transactionId });
-            }
-            else if (newValue == false && ignore != null)
-            {
-                await ignoredTransactionsStore.Delete(ignore);
-            }
-        }
-
         public async Task EditComment(int transactionId, string text)
         {
             var comment = (await commentStore.Query(q => q.Where(c => c.TransactionId == transactionId))).SingleOrDefault();
@@ -199,11 +174,6 @@ namespace Analyst.Core.Services
                     await commentStore.Delete(comment);
                 }
             }
-        }
-
-        async Task IHandle<IgnoreTransactions>.Handle(IgnoreTransactions message)
-        {
-            await Task.WhenAll(message.TransactionsIds.Select(id => SetIgnoredValue(id, true)));
         }
     }
 }

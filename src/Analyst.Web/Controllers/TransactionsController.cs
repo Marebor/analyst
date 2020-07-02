@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Analyst.Core.Models;
@@ -77,14 +76,6 @@ namespace Analyst.Web.Controllers
         public async Task<IActionResult> EditComment(int transactionId, [FromBody] string text)
         {
             await transactionService.EditComment(transactionId, text);
-
-            return Ok();
-        }
-
-        [HttpPut("{transactionId}/ignored")]
-        public async Task<IActionResult> SetIgnoredValue(int transactionId, [FromBody] bool newValue)
-        {
-            await transactionService.SetIgnoredValue(transactionId, newValue);
 
             return Ok();
         }

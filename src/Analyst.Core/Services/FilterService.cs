@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace Analyst.Core.Services
 {
     public class FilterService
-        : IHandle<TransactionsUploaded>
     {
         IStore<Filter> filterStore;
         TagService tagService;
@@ -83,18 +82,6 @@ namespace Analyst.Core.Services
             }
             
             await filterStore.Delete(filterEntity);
-        }
-
-        async Task IHandle<TransactionsUploaded>.Handle(TransactionsUploaded message)
-        {
-            var filtersWithIgnoreTag = await filterStore.Query(q => q.Where(f => f.TagNamesIfTrue.Contains("IGNORE")));
-
-            var transactionsToIgnore = filtersWithIgnoreTag
-                .SelectMany(f => f.Apply(message.Transactions))
-                .Select(t => t.Id)
-                .Distinct();
-
-            await messageBus.Publish(new IgnoreTransactions(transactionsToIgnore));
         }
     }
 }

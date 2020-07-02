@@ -198,14 +198,6 @@ export class DashboardComponent implements OnInit {
     this.tagService.deleteTag(tag.name).subscribe();
   }
 
-  changeTransactionIgnoreValue(transaction: Transaction) {
-    if (transaction.ignored) {
-      this.transactionService.changeIgnoredValue(transaction.id, false).subscribe();
-    } else {
-      this.transactionService.changeIgnoredValue(transaction.id, true).subscribe()
-    }
-  }
-
   private refresh(): void {
     const browsing = this.currentContextId ? 
       this.browsingService.browseByUploadId(this.currentContextId) :
@@ -253,7 +245,6 @@ export class DashboardComponent implements OnInit {
       }
 
       t.transaction.comment = t.comment;
-      t.transaction.ignored = t.ignored;
     });
   }
 

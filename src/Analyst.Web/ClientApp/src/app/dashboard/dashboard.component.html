@@ -87,8 +87,7 @@
     <div class="list-template" [hidden]="activeTab !== 'Transakcje'">
       <app-transactions-list 
       [transactions$]="transactionListData$"
-      [tagSelected$]="tagSelected_transactionsList$"
-      (transactionIgnoreValueChanged)="changeTransactionIgnoreValue($event)"></app-transactions-list>
+      [tagSelected$]="tagSelected_transactionsList$"></app-transactions-list>
     </div>
     <div class="list-template" [hidden]="activeTab !== 'Filtry'">
       <app-filter-manager [tagSelected$]="tagSelected_filterManager$"></app-filter-manager>
