@@ -121,6 +121,7 @@ namespace Analyst.Web
             }
 
             db.AddDefaultValuesToZeroAmountTagAssignments();
+            db.MigrateTransactionIgnoreToTags();
         }
     }
 }

@@ -13,20 +13,17 @@ namespace Analyst.Core.Services
         IStore<TagAssignment> tagAssignmentStore;
         IStore<TagSuppression> tagSuppressionStore;
         IStore<Comment> commentStore;
-        IStore<TransactionIgnore> ignoredTransactionsStore;
 
         public BrowsingService(
             IStore<Filter> filterStore, 
             IStore<TagAssignment> tagAssignmentStore, 
             IStore<TagSuppression> tagSuppressionStore, 
-            IStore<Comment> commentStore,
-            IStore<TransactionIgnore> ignoredTransactionsStore)
+            IStore<Comment> commentStore)
         {
             this.filterStore = filterStore;
             this.tagAssignmentStore = tagAssignmentStore;
             this.tagSuppressionStore = tagSuppressionStore;
             this.commentStore = commentStore;
-            this.ignoredTransactionsStore = ignoredTransactionsStore;
         }
 
         public async Task<BrowsingData> Browse(IEnumerable<Transaction> transactions)
@@ -35,45 +32,38 @@ namespace Analyst.Core.Services
             var assignments = await tagAssignmentStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
             var suppressions = await tagSuppressionStore.Query(q => q.Where(a => transactions.Any(t => a.TransactionId == t.Id)));
             var comments = await commentStore.Query(q => q.Where(c => transactions.Any(t => c.TransactionId == t.Id)));
-            var ignoredTransactions = await ignoredTransactionsStore.Query(q => q.Where(c => transactions.Any(t => c.TransactionId == t.Id)));
 
             var tagsPerTransaction = transactions.ToDictionary(x => x, _ => new HashSet<TagReadModel>());
 
             AddTagsFromAssignments(tagsPerTransaction, assignments);
             AddTagsFromFilters(tagsPerTransaction, filters, suppressions);
-
+            
             return new BrowsingData(
                 transactions: transactions
                     .OrderByDescending(t => t.OrderDate)
                     .Select(transaction => new TransactionReadModel(
                         transaction, 
                         tagsPerTransaction[transaction].ToArray(),
-                        comments.SingleOrDefault(c => c.TransactionId == transaction.Id)?.Text,
-                        ignoredTransactions.Any(it => it.TransactionId == transaction.Id)))
+                        comments.SingleOrDefault(c => c.TransactionId == transaction.Id)?.Text))
                     .ToArray(),
                 spendingsPerTag: tagsPerTransaction
                     .Where(x => x.Key.Amount < 0)
-                    .Where(x => !ignoredTransactions
-                        .Any(y => y.TransactionId == x.Key.Id))
                     .SelectMany(x => x.Value)
                     .GroupBy(x => x.Name)
+                    .Where(x => x.Key != "IGNORE")
                     .ToDictionary(
                         x => x.Key,
                         x => x.Sum(y => y.Amount)),
                 otherSpendings: tagsPerTransaction
                     .Where(x => x.Key.Amount < 0)
-                    .Where(x => !ignoredTransactions
-                        .Any(y => y.TransactionId == x.Key.Id))
                     .Sum(x => Math.Abs(x.Key.Amount) - x.Value.Sum(y => y.Amount)),
                 summary: new Summary(
-                    totalIncome: transactions
-                        .Where(t => t.Amount > 0)
-                        .Where(t => !ignoredTransactions.Any(it => it.TransactionId == t.Id))
-                        .Sum(t => t.Amount),
-                    totalExpenses: transactions
-                        .Where(t => t.Amount < 0)
-                        .Where(t => !ignoredTransactions.Any(it => it.TransactionId == t.Id))
-                        .Sum(t => -t.Amount)));
+                    totalIncome: tagsPerTransaction
+                        .Where(t => t.Key.Amount > 0)
+                        .Sum(t => Math.Abs(t.Key.Amount) - t.Value.Where(tag => tag.Name == "IGNORE").Sum(tag => tag.Amount)),
+                    totalExpenses: tagsPerTransaction
+                        .Where(t => t.Key.Amount < 0)
+                        .Sum(t => Math.Abs(t.Key.Amount) - t.Value.Where(tag => tag.Name == "IGNORE").Sum(tag => tag.Amount))));
         }
 
         private void AddTagsFromFilters(
@@ -81,7 +71,9 @@ namespace Analyst.Core.Services
             IEnumerable<Filter> filters, 
             IEnumerable<TagSuppression> suppressions)
         {
-            foreach (var filter in filters)
+            var orderedFilters = filters.OrderBy(f => !f.TagNamesIfTrue.Any(t => t == "IGNORE"));
+
+            foreach (var filter in orderedFilters)
             {
                 var transactionsWithoutTagsAssigned = tagsPerTransaction
                     .Where(x => x.Value.Count == 0)
@@ -94,7 +86,10 @@ namespace Analyst.Core.Services
 
                     foreach (var tagName in notSuppressedTagNames)
                     {
-                        TryAdd(tagsPerTransaction, new TagReadModel(tagName, Math.Abs(transaction.Amount)), transaction);
+                        if (!tagsPerTransaction[transaction].Any())
+                        {
+                            TryAdd(tagsPerTransaction, new TagReadModel(tagName, Math.Abs(transaction.Amount)), transaction);
+                        }
                     }
                 }
             }

@@ -14,7 +14,6 @@ import 'rxjs/add/operator/mergeMap';
 export class TransactionsListComponent implements OnInit {
   @Input() transactions$: Observable<Transaction[]>;
   @Input() tagSelected$: Observable<Tag>;
-  @Output() transactionIgnoreValueChanged: EventEmitter<Transaction> = new EventEmitter<Transaction>();
   transactions: Transaction[];
   tags: Tag[];
   selectedTransactionIndex: number;
@@ -53,6 +52,16 @@ export class TransactionsListComponent implements OnInit {
         this.selectedTransactionIndex = this.transactions.length - 1;
       }
     });
+  }
+
+  isIgnored(transaction: Transaction) {
+    let ignoreTag = transaction.tags.find(t => t.name === "IGNORE");
+
+    if (ignoreTag) {
+      return ignoreTag.amount === Math.abs(transaction.amount);
+    }
+
+    return false;
   }
 
   transactionClicked(transactionIndex: number) {
@@ -114,10 +123,6 @@ export class TransactionsListComponent implements OnInit {
 
   getOthersAmount(transaction: Transaction) {
     return Math.abs(transaction.amount) - transaction.tags.reduce((sum, tag) => sum += tag.amount, 0);
-  }
-
-  toggleIgnored(transaction: Transaction) {
-    this.transactionIgnoreValueChanged.emit(transaction);
   }
 
   closeComment() {

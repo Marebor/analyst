@@ -41,16 +41,6 @@ export class TransactionService {
     );
   }
 
-  changeIgnoredValue(transactionId: number, ignored: boolean): Observable<void> {
-    return this.httpClient.put<void>(
-      `${this.originUrl}api/transactions/${transactionId}/ignored`,
-      `\"${ignored}\"`, 
-      { headers: { 'Content-Type': 'application/json' } }
-    ).pipe(
-      tap(() => this.browsingService.stateChange.next())
-    );
-  }
-
   editComment(transactionId: number, comment: string): Observable<void> {
     return this.httpClient.post<void>(
       `${this.originUrl}api/transactions/${transactionId}/comment`,

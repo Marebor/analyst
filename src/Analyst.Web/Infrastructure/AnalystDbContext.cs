@@ -14,6 +14,7 @@ namespace Analyst.Web.Infrastructure
         public DbSet<TagAssignment> TagAssignments { get; set; }
         public DbSet<TagSuppression> TagSuppressions { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        [Obsolete]
         public DbSet<TransactionIgnore> IgnoredTransactions { get; set; }
         public DbSet<Account> Accounts { get; set; }
 

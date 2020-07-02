@@ -99,5 +99,24 @@ namespace Analyst.Web.Infrastructure
 
             db.SaveChanges();
         }
+
+        public static void MigrateTransactionIgnoreToTags(this AnalystDbContext db)
+        {
+            var ignoredTransactions = db.IgnoredTransactions.Select(i => i.TransactionId).ToArray();
+            var transactionsToIgnore = db.Transactions.Where(t => ignoredTransactions.Contains(t.Id)).ToArray();
+            var existingTagAssignments = db.TagAssignments.Where(a => a.TagName == "IGNORE" && transactionsToIgnore.Select(t => t.Id).Contains(a.TransactionId)).ToArray();
+            var unassignedTransactions = transactionsToIgnore.Where(t => !existingTagAssignments.Select(a => a.TransactionId).Contains(t.Id));
+
+            var assignments = unassignedTransactions.Select(t => new TagAssignment
+            {
+                TransactionId = t.Id,
+                TagName = "IGNORE",
+                Amount = Math.Abs(t.Amount),
+            });
+
+            db.TagAssignments.AddRange(assignments);
+
+            db.SaveChanges();
+        }
     }
 }
