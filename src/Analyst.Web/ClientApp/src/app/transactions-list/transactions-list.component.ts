@@ -34,15 +34,15 @@ export class TransactionsListComponent implements OnInit {
 
       const selectedTransaction = this.transactions.find((t, i) => i === this.selectedTransactionIndex);
       
-      if (selectedTransaction.tags.length === 0) {
-        this.transactionService.saveTransactionTags(
-          selectedTransaction.id, 
-          [{ name: tag.name, amount: Math.abs(selectedTransaction.amount) }])
-        .subscribe();
-      } else {
+      if (!this.editedTags) {
         this.editedTags = JSON.parse(JSON.stringify(selectedTransaction.tags));
-        this.editedTags.push(Object.assign({}, tag));
-      }
+      } 
+      
+      const copiedTag = Object.assign({}, tag);
+      const tagsAmountsSum = this.editedTags.reduce((prev, curr) => prev + curr.amount, 0);
+      const remainingAmount = Math.abs(selectedTransaction.amount) - tagsAmountsSum;
+      copiedTag.amount = remainingAmount;
+      this.editedTags.push(copiedTag);
     });
 
     this.transactions$.subscribe(transactions => {

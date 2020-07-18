@@ -317,11 +317,11 @@ export class DashboardComponent implements OnInit {
     }
 
     if (!this.showIgnored) {
-      transactionsToShow = transactionsToShow.filter(t => !t.ignored);
+      transactionsToShow = transactionsToShow.filter(t => !t.tags.find(tag => tag.name === 'IGNORE'));
     }
 
     if (!this.showNotIgnored) {
-      transactionsToShow = transactionsToShow.filter(t => t.ignored);      
+      transactionsToShow = transactionsToShow.filter(t => t.tags.find(tag => tag.name === 'IGNORE'));      
     }
 
     if (this.selectedTag) {
