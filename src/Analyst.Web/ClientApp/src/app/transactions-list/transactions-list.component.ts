@@ -43,6 +43,8 @@ export class TransactionsListComponent implements OnInit {
       const remainingAmount = Math.abs(selectedTransaction.amount) - tagsAmountsSum;
       copiedTag.amount = remainingAmount;
       this.editedTags.push(copiedTag);
+
+      setTimeout(() => document.getElementById('tagEditInput').focus(), 0);
     });
 
     this.transactions$.subscribe(transactions => {
