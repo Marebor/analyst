@@ -274,7 +274,6 @@ export class DashboardComponent implements OnInit {
         if (spendings > 0) {
           array.push({
             tag: this.tags.find(t => t.name === tagName),
-            transactions: [],
             spendings: spendings
           });
         }
@@ -283,14 +282,12 @@ export class DashboardComponent implements OnInit {
       if (this.browsingData.otherSpendings > 0) {
         array.push({
           tag: { name: 'Inne', color: 'lightgray', amount: this.browsingData.otherSpendings },
-          transactions: [],
           spendings: this.browsingData.otherSpendings
         });
       }
     } else {
       array.push({
         tag: this.selectedTag,
-        transactions: [],
         spendings: this.selectedTag.name !== 'Inne' ?
           this.browsingData.spendingsPerTag[this.selectedTag.name] : this.browsingData.otherSpendings
       })

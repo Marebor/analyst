@@ -15,6 +15,11 @@
       <ng-container *ngFor="let item of data">
         <div *ngIf="item  !== othersDataItem" class="tag-summary">
           <div class="amount">{{ item.spendings | number:'1.2-2' }} zł</div>
+          <span class="checkbox-wrapper">
+            <input type="checkbox" class="form-check-input"
+            [checked]="isItemVisible(item)"
+            (click)="changeItemVisibility(item)">
+          </span>
           <app-tag [tag]="item.tag" [allowChangeColor]="true" [tooltipSide]="'right'"
           (click)="onTagClicked(item.tag)"></app-tag>
         </div>
@@ -22,6 +27,11 @@
     </div>
     <div *ngIf="othersDataItem" class="tag-summary">
       <div class="amount">{{ othersDataItem.spendings | number:'1.2-2' }} zł</div>
+      <span class="checkbox-wrapper">
+        <input type="checkbox" class="form-check-input"
+        [checked]="isItemVisible(othersDataItem)"
+        (click)="changeItemVisibility(othersDataItem)">
+      </span>
       <span class="others" (click)="onTagClicked(othersDataItem.tag)">Inne</span>
     </div>
     <div class="amount total">{{ total | number:'1.2-2' }} zł</div>

@@ -27,8 +27,13 @@
 
 .amount {
   width: 30%;
+  padding-right: 20px;
   text-align: right;
   display: inline-block;
+}
+
+.checkbox-wrapper {
+  padding-left: 6px;
 }
 
 .tag {
