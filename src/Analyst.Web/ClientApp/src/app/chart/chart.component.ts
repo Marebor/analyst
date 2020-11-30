@@ -60,7 +60,7 @@ export class ChartComponent implements OnInit, OnDestroy {
   }
 
   chartClicked($event: any) {
-    const tag = this.data[$event.active[0]._index].tag;
+    const tag = this.dataToDisplay[$event.active[0]._index].tag;
     this.onTagClicked(tag);
   }
 
