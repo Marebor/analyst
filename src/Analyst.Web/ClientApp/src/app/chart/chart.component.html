@@ -35,6 +35,7 @@
       <span class="others" (click)="onTagClicked(othersDataItem.tag)">Inne</span>
     </div>
     <div class="amount total">{{ total | number:'1.2-2' }} zł</div>
+    <div class="amount profit">zysk: {{ summary.profit | number:'1.2-2' }} zł</div>
   </div>
 </div>
 <ng-template #noData>

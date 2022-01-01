@@ -62,7 +62,7 @@
   </div>
 </div>
 <div class="chart-wrapper">
-  <app-chart [data$]="chartData$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
+  <app-chart [data$]="chartData$" [income$]="income$" (tagClicked)="tagClickedOnChart($event)"></app-chart>
 </div>
 <div class="list-wrapper" [class.expanded]="expandList">
   <div class="list-bar">

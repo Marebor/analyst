@@ -12,8 +12,8 @@
 .summary {
   position: absolute;
   top: 40px;
-  right: 60px;
-  width: 27%;
+  right: 20px;
+  width: 30%;
   font-size: 14px;
   height: 290px;
   display: flex;
@@ -43,6 +43,10 @@
 
 .total {
   font-weight: bold;
+}
+
+.profit {
+  font-style: italic;
 }
 
 .others {

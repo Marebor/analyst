@@ -23,6 +23,7 @@ export class DashboardComponent implements OnInit {
   calendarStartDate: Date;
   browsingData: IBrowsingData;
   chartData$: Subject<ChartDataItem[]> = new Subject<ChartDataItem[]>();
+  income$: Subject<number> = new Subject<number>();
   transactionListData$: Subject<Transaction[]> = new Subject<Transaction[]>();
   tagSelected_transactionsList$: Subject<Tag> = new Subject<Tag>();
   tagSelected_filterManager$: Subject<Tag> = new Subject<Tag>();
@@ -257,6 +258,7 @@ export class DashboardComponent implements OnInit {
     }
     
     this.chartData$.next(chartData);
+    this.income$.next(this.browsingData.summary.totalIncome);
     this.transactionListData$.next(this.getTransactionListData());
   }
   

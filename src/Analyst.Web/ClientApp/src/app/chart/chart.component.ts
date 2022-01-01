@@ -1,11 +1,9 @@
-import { IBrowsingData } from '../models/browsing-data';
-import { TagService } from '../services/tag.service';
 import { Component, Input, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
-import { Transaction } from '../models/transaction.model';
 import { Tag } from '../models/tag.model';
 import { Subscription } from 'rxjs/Subscription';
 import { ChartDataItem } from './chart-data-item.model';
 import { Observable } from '../../../node_modules/rxjs/Observable';
+import { ISummary } from '../models/browsing-data';
 
 @Component({
   selector: 'app-chart',
@@ -14,9 +12,12 @@ import { Observable } from '../../../node_modules/rxjs/Observable';
 })
 export class ChartComponent implements OnInit, OnDestroy {
   @Input() data$: Observable<ChartDataItem[]>;
+  @Input() income$: Observable<number>;
   @Output() tagClicked: EventEmitter<Tag> = new EventEmitter<Tag>();
   data: ChartDataItem[];
+  income: number;
   dataSubscription: Subscription;
+  incomeSubscription: Subscription;
   hiddenTags: string[] = [];
 
   get othersDataItem(): ChartDataItem {
@@ -48,6 +49,9 @@ export class ChartComponent implements OnInit, OnDestroy {
     this.dataSubscription = this.data$.subscribe(data => {
       this.data = null;
       setTimeout(() => this.data = data);
+    });
+    this.incomeSubscription = this.income$.subscribe(income => {
+      setTimeout(() => this.income = income);
     });
   }
 
@@ -87,5 +91,13 @@ export class ChartComponent implements OnInit, OnDestroy {
 
   private get dataToDisplay(): ChartDataItem[] {
     return this.data.filter(i => this.hiddenTags.findIndex(t => t === i.tag.name) === -1);
+  }
+
+  private get summary(): ISummary {
+    return {
+      totalIncome: this.income,
+      totalExpenses: this.total,
+      profit: this.income - this.total,
+    }
   }
 }
